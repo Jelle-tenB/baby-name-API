@@ -1,4 +1,4 @@
-# Pick-A-Name / Baby name Tinder (WIP)
+# Pick-A-Name / Baby name Tinder
 
 ## Description
 
