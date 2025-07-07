@@ -20,7 +20,7 @@ The frontend for the website/app is currently being a build by others. When we a
 
 ## Contact
 
-You can reach me at: <jellepelle213@hotmail.com>
+You can reach me at: <jelle.tbroeke@gmail.com>
 
 ## License
 
