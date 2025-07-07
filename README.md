@@ -10,6 +10,8 @@ The frontend for the website/app is currently being a build by others. When we a
 
 ## Instructions
 
+* API-Backend is the main project
+* API-tester has an automated tester (testing.py) with Pytest and slightly altered code.
 * Fork this repository
 * Install the requirements (pip install -r API-Backend/requirements.txt)
 * Run main.py
