@@ -45,6 +45,7 @@ from account_recover import account_recover_router
 from delete_user import delete_user_router
 from compare_likes import compare_likes_router
 from user_preferences import user_preferences_router
+from logout import logout_router
 
 
 # Router to add the API methods to /docs.
@@ -54,6 +55,7 @@ app.include_router(dislike_list_router)
 app.include_router(group_liked_router)
 app.include_router(similar_router)
 app.include_router(compare_likes_router)
+app.include_router(logout_router)
 app.include_router(login_router)
 app.include_router(new_user_router)
 app.include_router(user_preferences_router)

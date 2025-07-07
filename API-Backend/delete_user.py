@@ -78,7 +78,7 @@ async def delete_user(
 
     except Error as e:
         raise HTTPException(status_code=500, detail="error: database error") from e
-    
+
     # Check for groups with no users
     async with db.execute("""
         SELECT g.group_id

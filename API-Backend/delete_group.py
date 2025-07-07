@@ -57,7 +57,7 @@ async def delete_group(
 
 
     try:
-        # Query to check user is indeed in the given group.
+        # Query to check if user is indeed in the given group.
         code_query = """
         SELECT user_id
         FROM link_users
