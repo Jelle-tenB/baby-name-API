@@ -26,5 +26,5 @@ You can reach me at: <jelle.tbroeke@gmail.com>
 
 ## License
 
-You can use my code in any shape or form that you like, besides training AI or commercially.\
+You can use my code in any shape or form that you like, besides commercially.\
 The database is build off of a different database for which you can find the license [here](https://github.com/MatthiasWinkelmann/firstname-database)
