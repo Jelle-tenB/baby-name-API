@@ -28,7 +28,7 @@ from imports import get_db, pwd_context, save_session_token, limiter
 
 login_router = APIRouter()
 
-MAX_ATTEMPTS = 9999  # Maximum allowed login attempts
+MAX_ATTEMPTS = 5  # Maximum allowed login attempts
 LOCKOUT_DURATION = timedelta(minutes=10)  # Lockout duration after max attempts
 
 
@@ -78,18 +78,24 @@ async def login(
     With a maximum of 5 attempts, user will be locked out after the fifth failed attempt.
     """
 
-    headers = request.headers
-
     # Query to find the user's data.
     query = """
     SELECT username, password, user_id FROM users WHERE username = ?;
     """
 
-    # Query to find the group code(s) a user might be in.
     groupcode_query = """
-    SELECT group_code FROM groups
-    JOIN link_users ON groups.group_id = link_users.group_id
-    WHERE user_id = ?;
+    SELECT g.group_code,
+        u.username
+    FROM link_users AS lu_self
+    JOIN link_users AS lu_other 
+    ON lu_other.group_id = lu_self.group_id
+    AND lu_other.user_id <> lu_self.user_id
+    JOIN groups AS g 
+    ON g.group_id = lu_self.group_id
+    JOIN users AS u 
+    ON u.user_id = lu_other.user_id
+    WHERE lu_self.user_id = ?
+    ORDER BY g.group_code, u.username;
     """
 
     username = item.username.lower()
@@ -201,7 +207,9 @@ async def login(
         session_token = await save_session_token(user_id=user_id, db=db)
 
         async with db.execute(groupcode_query, (user_id,)) as cursor:
-            group_codes = [i[0] for i in await cursor.fetchall()]
+            rows = await cursor.fetchall()
+
+        group_codes = {group_code: username for group_code, username in rows}
 
         response = JSONResponse(
             content={"success": f"{username}",
@@ -212,7 +220,7 @@ async def login(
         origin = request.headers.get("origin")
 
         if not origin:
-            origin = headers["host"]
+            origin = request.headers["host"]
             print(origin, "test1")
 
         if origin in ["https://babynamegenerator.roads-technology.nl",
@@ -237,7 +245,6 @@ async def login(
         cookie_data = dumps(data)
 
         maxage = int(timedelta(hours=24).total_seconds())
-        print(cookie_data)
 
         # Sets the cookie for the user.
         if origin in ["http://127.0.0.1:5000",
@@ -247,20 +254,20 @@ async def login(
             response.set_cookie(
                 key='session_token',
                 value=cookie_data,
-                httponly=False,  # Prevent JavaScript from accessing the cookie
+                httponly=False,
                 secure=True,    # Use True in production to send cookie over HTTPS only
                 max_age=maxage,
-                samesite='lax')    # Helps with CSRF protection
-                # domain='127.0.0.1')
+                samesite='lax',    # Helps with CSRF protection
+                domain='127.0.0.1')
         else:
             response.set_cookie(
                 key='session_token',
                 value=cookie_data,
-                httponly=True,  # Prevent JavaScript from accessing the cookie
+                httponly=False,
                 secure=True,    # Use True in production to send cookie over HTTPS only
                 max_age=maxage,
-                samesite='lax')    # Helps with CSRF protection
-                # domain='.roads-technology.nl')
+                samesite='lax',    # Helps with CSRF protection
+                domain='.roads-technology.nl')
 
     except Error as e:
         raise HTTPException(status_code=401, detail="error: incorrect username or password") from e

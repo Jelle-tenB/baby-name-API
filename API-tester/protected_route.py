@@ -46,8 +46,6 @@ async def protected_route(
 
     """GET request to login with an authorisation token in the cookie."""
 
-    headers = request.headers
-
     if not session_token:
         raise HTTPException(status_code=401, detail="error: not logged in")
     else:
@@ -65,13 +63,24 @@ async def protected_route(
 
     # Query to find a user's group code
     groupcode_query = """
-        SELECT group_code FROM groups
-        JOIN link_users ON groups.group_id = link_users.group_id
-        WHERE user_id = ?;
+        SELECT g.group_code,
+            u.username
+        FROM link_users AS lu_self
+        JOIN link_users AS lu_other 
+        ON lu_other.group_id = lu_self.group_id
+        AND lu_other.user_id <> lu_self.user_id
+        JOIN groups AS g 
+        ON g.group_id = lu_self.group_id
+        JOIN users AS u 
+        ON u.user_id = lu_other.user_id
+        WHERE lu_self.user_id = ?
+        ORDER BY g.group_code, u.username;
         """
 
     async with db.execute(groupcode_query, (user_id,)) as cursor:
-        group_codes = [i[0] for i in await cursor.fetchall()]
+        rows = await cursor.fetchall()
+
+    group_codes = {group_code: username for group_code, username in rows}
 
     data = {
         "id": user_id,
@@ -89,7 +98,7 @@ async def protected_route(
 
     origin = request.headers.get("origin")
     if not origin:
-        origin = headers["host"]
+        origin = request.headers["host"]
 
     if origin in ["https://babynamegenerator.roads-technology.nl",
                   "https://apibabynamegenerator.roads-technology.nl",
@@ -113,7 +122,7 @@ async def protected_route(
         response.set_cookie(
             key='session_token',
             value=cookie_data,
-            httponly=True,  # Prevent JavaScript from accessing the cookie
+            httponly=False,  # Prevent JavaScript from accessing the cookie
             secure=False,    # Use True in production to send cookie over HTTPS only
             max_age=maxage,
             samesite='lax',    # Helps with CSRF protection
@@ -122,7 +131,7 @@ async def protected_route(
         response.set_cookie(
             key='session_token',
             value=cookie_data,
-            httponly=True,  # Prevent JavaScript from accessing the cookie
+            httponly=False,  # Prevent JavaScript from accessing the cookie
             secure=True,    # Use True in production to send cookie over HTTPS only
             max_age=maxage,
             samesite='lax',    # Helps with CSRF protection

@@ -57,7 +57,7 @@ async def delete_group(
 
 
     try:
-        # Query to check user is indeed in the given group.
+        # Query to check if user is indeed in the given group.
         code_query = """
         SELECT user_id
         FROM link_users
@@ -104,7 +104,8 @@ async def delete_group(
         response = JSONResponse(status_code=200,
                         content={"success": f"group {group_code} has successfully been deleted"})
 
-        user_info["group_codes"].remove(group_code)
+        #user_info["group_codes"].remove(group_code)
+        del user_info["group_codes"][group_code]
         cookie_data = dumps(user_info)
         response.set_cookie(
             key="session_token",

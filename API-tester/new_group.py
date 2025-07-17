@@ -7,7 +7,7 @@ Max 2 users per group.
 Returns a group code that is 6 characters long.
 The group code is unique and is used to identify the group.
 """
-
+#TODO: fix this endpoint!
 
 # Standard Library
 from json import loads, dumps
@@ -90,7 +90,7 @@ async def new_group(
         # Prevents users from having more than 2 groups.
         if group_count >= 2:
             return JSONResponse(
-                content={"error": f"User {user_name} already has 2 groups"},
+                content={"error": f"user {user_name} already has 2 groups"},
                 status_code=400)
 
         # Query to save the group code.
@@ -120,8 +120,7 @@ async def new_group(
                     "group_code": group_code},
             status_code=200)
 
-        data["group_codes"] = data["group_codes"] + [group_code]
-
+        data["group_codes"].update({group_code: ""})
         cookie_data = dumps(data)
         response.set_cookie(
             key="session_token",
