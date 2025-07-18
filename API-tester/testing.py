@@ -146,6 +146,86 @@ async def test_create_user_invalid():
 # -----------------------------------------------------------------
 
 
+# ------ USER LOGIN/LOGOUT TESTS ------------------------------------------
+@pytest.mark.asyncio
+async def test_user_logout():
+    async with AsyncClient(transport=transport, base_url=URL) as client:
+        with open("session_token.json", "r", encoding="utf-8") as f:
+            session_token = json.load(f)
+
+        response = await client.get("/logout",
+            cookies={"session_token": json.dumps(session_token)})
+
+        # Assert status code
+        assert response.status_code == 200
+
+        # Check response body
+        json_response = response.json()
+        assert "success" in json_response
+
+@pytest.mark.asyncio
+async def test_user_logout_not_logged_in():
+    async with AsyncClient(transport=transport, base_url=URL) as client:
+        response = await client.get("/logout")
+
+        # Assert status code
+        assert response.status_code == 401
+
+        # Check response body
+        json_response = response.json()
+        assert "error" in json_response['detail']
+
+@pytest.mark.asyncio
+async def test_user_login_invalid():
+    async with AsyncClient(transport=transport, base_url=URL) as client:
+        response = await client.post("/login", json={
+            "username": "invalid_user",
+            "password": "wrongPassword"
+        })
+
+        # Assert status code
+        assert response.status_code == 401
+
+        # Check response body
+        json_response = response.json()
+        assert "error" in json_response['detail']
+
+
+@pytest.mark.asyncio
+async def test_user_login():
+    async with AsyncClient(transport=transport, base_url=URL) as client:
+        response = await client.post("/login", json={
+            "username": TEST_USER,
+            "password": TEST_PASSWORD
+        })
+
+        # Assert status code
+        assert response.status_code == 200
+
+        # Check response body
+        json_response = response.json()
+        assert "success" in json_response
+
+        # Extract cookies
+        set_cookie = response.headers.get("set-cookie")
+        assert set_cookie is not None
+
+        cookie = http.cookies.SimpleCookie()
+        cookie.load(set_cookie)
+
+        # Extract and parse the actual cookie value
+        session_token_str = cookie["session_token"].value
+
+        # Convert the cookie value (a JSON string) to a dictionary
+        session_token_dict = json.loads(session_token_str)
+
+        # Save the dictionary directly to a file
+        with open("session_token.json", "w", encoding="utf-8") as f:
+            json.dump(session_token_dict, f, indent=2)
+
+# -----------------------------------------------------------------
+
+
 # ------ USER PREFERENCES TESTS ------------------------------------------
 @pytest.mark.asyncio
 async def test_user_preferences():
@@ -254,9 +334,21 @@ async def test_create_new_group():
 
         # Check response body
         json_response = response.json()
-        group_codes = json_response["group_code"]
 
-        session_token["group_codes"] += [group_codes]
+        set_cookie = response.headers.get("set-cookie")
+        assert set_cookie is not None
+
+        cookie = http.cookies.SimpleCookie()
+        cookie.load(set_cookie)
+
+        # Extract and parse the actual cookie value
+        session_token_str = cookie["session_token"].value
+
+        # Convert the cookie value (a JSON string) to a dictionary
+        session_token_dict = json.loads(session_token_str)
+
+        group_codes = session_token_dict["group_codes"]
+        session_token["group_codes"].update(group_codes)
 
         with open("session_token.json", "w", encoding="utf-8") as f:
             json.dump(session_token, f)
@@ -296,7 +388,19 @@ async def test_add_to_group():
                     cookies={"session_token": json.dumps(session_token)},
                     json={"group_code": TEST_GROUP})
 
-        session_token["group_codes"].append(TEST_GROUP)
+        set_cookie = response.headers.get("set-cookie")
+        assert set_cookie is not None
+
+        cookie = http.cookies.SimpleCookie()
+        cookie.load(set_cookie)
+
+        # Extract and parse the actual cookie value
+        session_token_str = cookie["session_token"].value
+
+        # Convert the cookie value (a JSON string) to a dictionary
+        session_token_dict = json.loads(session_token_str)
+
+        session_token["group_codes"].update(session_token_dict["group_codes"])
 
         with open("session_token.json", "w", encoding="utf-8") as f:
             json.dump(session_token, f)
@@ -307,7 +411,7 @@ async def test_add_to_group():
         # Check response body
         json_response = response.json()
         assert "success" in json_response
-        assert f"{TEST_GROUP}" in json_response
+        assert f"{TEST_GROUP}" in json_response["success"]
 # -------------------------------------------------------------------
 
 # ------ ACCOUNT RECOVERY TESTS ------------------------------------------
@@ -492,7 +596,7 @@ async def test_undislike():
         assert "success" in json_response
         assert "deleted 1" in json_response["success"]
 # ------------------------------------------------------------------
-
+#TODO: change group_codes[0] to handle dict
 # LEAVE THESE TESTS FOR LAST
 # ------ DELETE GROUP TESTS ------------------------------------------
 @pytest.mark.asyncio
@@ -505,7 +609,7 @@ async def test_delete_group():
         # Now delete the group
         response = await client.delete("/delete_group",
                     cookies={"session_token": json.dumps(session_token)},
-                    params={"group_code": group_codes[0]})
+                    params={"group_code": next(iter(group_codes))})
 
         # Assert status code
         assert response.status_code == 200
@@ -513,7 +617,7 @@ async def test_delete_group():
         # Check response body
         json_response = response.json()
         assert "success" in json_response
-        assert f"{group_codes[0]}" in json_response["success"]
+        assert f"{next(iter(group_codes))}" in json_response["success"]
 # ------------------------------------------------------------------
 
 # ------ USER DELETION TESTS ----------------------------------------
