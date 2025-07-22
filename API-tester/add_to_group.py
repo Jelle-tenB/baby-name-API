@@ -100,7 +100,7 @@ async def add_to_group(
     # Prevent users from having more than 2 groups.
     if user_count is None:
         raise HTTPException(status_code=400, detail="error: user not found")
-    elif user_count >= 2:
+    if user_count >= 2:
         return JSONResponse(
         content={"error": f"user {username} already has 2 groups"},
         status_code=401)

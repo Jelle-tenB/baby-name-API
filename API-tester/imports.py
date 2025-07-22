@@ -38,18 +38,14 @@ async def lifespan(app: FastAPI):
     yield
 
 # Slowapi rate limiter
-import os
-if os.environ.get("TESTING"):
-    limiter = Limiter(key_func=get_remote_address, enabled=False)
-else:
-    limiter = Limiter(key_func=get_remote_address)
-
-app = FastAPI(lifespan=lifespan)
+limiter = Limiter(key_func=get_remote_address)
+app = FastAPI(lifespan=lifespan, title="Pick-A-Name API",
+                description="API for the Pick-A-Name application")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler) # type: ignore
 
 
-maxage = int(timedelta(hours=12).total_seconds())
+maxage = int(timedelta(hours=24).total_seconds())
 
 # Allows acces from other programs
 app.add_middleware(
@@ -141,9 +137,9 @@ async def save_session_token(user_id: int, db: Connection = Depends(get_db)):
     UPDATE users SET session_token = ?, session_expiration = ?, last_login = ? WHERE user_id = ?;
     """
 
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     session_token = token_hex(20)
     session_expiration = timelater()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     async with db.execute(query, (session_token, session_expiration, now, user_id)):
         await db.commit()
     return session_token
@@ -172,7 +168,7 @@ async def validate_token(session_token, user_id, db: Connection):
 
             if expiration_date > datetime.now() and row[2] == session_token:
                 return {"username": row[1], "user_id": user_id}
-            else:
-                raise HTTPException(status_code=401, detail="error: expired session")
+
+            raise HTTPException(status_code=401, detail="error: expired session")
     except IntegrityError as e:
         raise HTTPException(status_code=401, detail="error: invalid session") from e

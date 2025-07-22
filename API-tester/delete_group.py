@@ -48,12 +48,12 @@ async def delete_group(
     # Check if the user is logged in and so has the correct cookie.
     if not session_token:
         raise HTTPException(status_code=401, detail="Not logged in")
-    else:
-        # Reads the cookie.
-        user_info = loads(session_token)
-        user_id = user_info["id"]
-        token = user_info["session_token"]
-        await validate_token(token, user_id, db)
+
+    # Reads the cookie.
+    user_info = loads(session_token)
+    user_id = user_info["id"]
+    token = user_info["session_token"]
+    await validate_token(token, user_id, db)
 
 
     try:

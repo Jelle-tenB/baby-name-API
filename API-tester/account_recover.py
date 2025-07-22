@@ -36,6 +36,7 @@ async def recovery(
     request: Request, # pylint: disable=unused-argument
     db: Connection = Depends(get_db)
 ):
+
     """POST request to reset a user's password, using a recovery token that the user has."""
 
     recovery_code = item.recovery_token.lower()
@@ -73,5 +74,4 @@ async def recovery(
 
         return JSONResponse(status_code=200, content="success: password has been updated.")
 
-    else:
-        raise HTTPException(status_code=401, detail="error: recovery code does not match")
+    raise HTTPException(status_code=401, detail="error: recovery code does not match")

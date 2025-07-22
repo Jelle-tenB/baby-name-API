@@ -55,10 +55,6 @@ async def user_preferences(
     request: Request, # pylint: disable=unused-argument
     db: Connection = Depends(get_db),
     session_token: str = Cookie(None),
-    # disliked: Optional[List[int]] = Query(None, min_length=1,
-    #                                 description="List of name_ids to be disliked"),
-    # liked: Optional[List[int]] = Query(None, min_length=1,
-    #                                 description="List of name_ids to be liked")
 ):
 
     """POST request to store the names a user has liked or disliked.
@@ -72,12 +68,12 @@ async def user_preferences(
 
     if not session_token:
         raise HTTPException(status_code=401, detail="error: not logged in")
-    else:
-        # Reads the cookie.
-        user_info = loads(session_token)
-        user_id = user_info["id"]
-        token = user_info["session_token"]
-        await validate_token(token, user_id, db)
+
+    # Reads the cookie.
+    user_info = loads(session_token)
+    user_id = user_info["id"]
+    token = user_info["session_token"]
+    await validate_token(token, user_id, db)
 
     disliked_names_to_insert = []
     liked_names_to_insert = []

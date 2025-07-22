@@ -48,13 +48,13 @@ async def protected_route(
 
     if not session_token:
         raise HTTPException(status_code=401, detail="error: not logged in")
-    else:
-        # Reads the cookie.
-        user_info = loads(session_token)
-        user_id = user_info["id"]
-        token = user_info["session_token"]
-        username = user_info["username"]
-        await validate_token(token, user_id, db)
+
+    # Reads the cookie.
+    user_info = loads(session_token)
+    user_id = user_info["id"]
+    token = user_info["session_token"]
+    username = user_info["username"]
+    await validate_token(token, user_id, db)
 
     #Saves and returns the new session token.
     session_token = await save_session_token(user_id=user_id, db=db)

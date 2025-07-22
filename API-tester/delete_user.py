@@ -46,13 +46,13 @@ async def delete_user(
     # Check if the user is logged in and so has the correct cookie.
     if not session_token:
         raise HTTPException(status_code=401, detail="not logged in")
-    else:
-        # Reads the cookie.
-        user_info = loads(session_token)
-        user_id = user_info["id"]
-        token = user_info["session_token"]
-        user_name = user_info["username"]
-        await validate_token(token, user_id, db)
+
+    # Reads the cookie.
+    user_info = loads(session_token)
+    user_id = user_info["id"]
+    token = user_info["session_token"]
+    user_name = user_info["username"]
+    await validate_token(token, user_id, db)
 
 
     # Query to see which groups the user might be in.
@@ -78,7 +78,7 @@ async def delete_user(
 
     except Error as e:
         raise HTTPException(status_code=500, detail="error: database error") from e
-    
+
     # Check for groups with no users
     async with db.execute("""
         SELECT g.group_id

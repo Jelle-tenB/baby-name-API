@@ -42,13 +42,13 @@ async def logout(
 
     if not session_token:
         raise HTTPException(status_code=401, detail="error: not logged in")
-    else:
-        # Reads the cookie.
-        user_info = loads(session_token)
-        user_id = user_info["id"]
-        token = user_info["session_token"]
-        await validate_token(token, user_id, db)
-    
+
+    # Reads the cookie.
+    user_info = loads(session_token)
+    user_id = user_info["id"]
+    token = user_info["session_token"]
+    await validate_token(token, user_id, db)
+
     # Invalidate the session token in the database
     try:
         query = """
@@ -67,4 +67,3 @@ async def logout(
     response.set_cookie(key="session_token", value="", max_age=0, httponly=True, samesite="lax")
 
     return response
-
