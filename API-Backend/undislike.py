@@ -49,12 +49,12 @@ async def undislike(
 
     if not session_token:
         raise HTTPException(status_code=401, detail="error: not logged in")
-    else:
-        # Reads the cookie.
-        user_info = loads(session_token)
-        user_id = user_info["id"]
-        token = user_info["session_token"]
-        await validate_token(token, user_id, db)
+
+    # Reads the cookie.
+    user_info = loads(session_token)
+    user_id = user_info["id"]
+    token = user_info["session_token"]
+    await validate_token(token, user_id, db)
 
     try:
         placeholders = ', '.join(['?'] * len(name_ids))

@@ -100,7 +100,7 @@ async def add_to_group(
     # Prevent users from having more than 2 groups.
     if user_count is None:
         raise HTTPException(status_code=400, detail="error: user not found")
-    elif user_count >= 2:
+    if user_count >= 2:
         return JSONResponse(
         content={"error": f"user {username} already has 2 groups"},
         status_code=401)
@@ -118,9 +118,29 @@ async def add_to_group(
         await db.commit()
 
         response = JSONResponse(status_code=200,
-                        content=f"success: user added to group {group_code}")
+                        content={"success": f"user added to group {group_code}"})
+        
+        groupcode_query = """
+            SELECT g.group_code,
+                u.username
+            FROM link_users AS lu_self
+            JOIN link_users AS lu_other 
+            ON lu_other.group_id = lu_self.group_id
+            AND lu_other.user_id <> lu_self.user_id
+            JOIN groups AS g 
+            ON g.group_id = lu_self.group_id
+            JOIN users AS u 
+            ON u.user_id = lu_other.user_id
+            WHERE lu_self.user_id = ?
+            ORDER BY g.group_code, u.username;
+            """
 
-        data["group_codes"] = data["group_codes"] + [group_code] if "group_codes" in data else [group_code]
+        async with db.execute(groupcode_query, (user_id,)) as cursor:
+            rows = await cursor.fetchall()
+
+        group_codes = {group_code: username for group_code, username in rows}
+
+        data["group_codes"].update(group_codes)
 
         cookie_data = dumps(data)
         response.set_cookie(

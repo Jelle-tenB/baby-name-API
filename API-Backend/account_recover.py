@@ -74,5 +74,4 @@ async def recovery(
 
         return JSONResponse(status_code=200, content="success: password has been updated.")
 
-    else:
-        raise HTTPException(status_code=401, detail="error: recovery code does not match")
+    raise HTTPException(status_code=401, detail="error: recovery code does not match")

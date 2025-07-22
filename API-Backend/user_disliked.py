@@ -56,12 +56,12 @@ async def user_disliked(
 
     if not session_token:
         raise HTTPException(status_code=401, detail="error: not logged in")
-    else:
-        # Reads the cookie.
-        user_info = loads(session_token)
-        user_id = user_info["id"]
-        token = user_info["session_token"]
-        await validate_token(token, user_id, db)
+
+    # Reads the cookie.
+    user_info = loads(session_token)
+    user_id = user_info["id"]
+    token = user_info["session_token"]
+    await validate_token(token, user_id, db)
 
     if user_id:
         # First, get the list of name_ids the user has already liked

@@ -26,11 +26,11 @@ logout_router = APIRouter()
                 }
             }
         },
-        400: {
+        401: {
             "description": "bad request - unsuccessful response",
             "content": {
                 "application/json": {
-                    "example": {"error": "Not logged in"}
+                    "example": {"error not logged in"}
 }}}})
 @limiter.limit("10/minute")
 async def logout(
@@ -41,14 +41,14 @@ async def logout(
     """GET request to logout by clearing the session token cookie."""
 
     if not session_token:
-        raise HTTPException(status_code=401, detail="Not logged in")
-    else:
-        # Reads the cookie.
-        user_info = loads(session_token)
-        user_id = user_info["id"]
-        token = user_info["session_token"]
-        await validate_token(token, user_id, db)
-    
+        raise HTTPException(status_code=401, detail="error: not logged in")
+
+    # Reads the cookie.
+    user_info = loads(session_token)
+    user_id = user_info["id"]
+    token = user_info["session_token"]
+    await validate_token(token, user_id, db)
+
     # Invalidate the session token in the database
     try:
         query = """
@@ -60,7 +60,7 @@ async def logout(
         async with db.execute(query, (user_id,)):
             await db.commit()
     except Exception as e:
-        raise HTTPException(status_code=500, detail="error invalidating session token") from e
+        raise HTTPException(status_code=500, detail="error: invalidating session token") from e
 
     # Clear the session token cookie
     response = JSONResponse(content={"success": "you have been logged out successfully."})

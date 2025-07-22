@@ -48,12 +48,12 @@ async def delete_group(
     # Check if the user is logged in and so has the correct cookie.
     if not session_token:
         raise HTTPException(status_code=401, detail="Not logged in")
-    else:
-        # Reads the cookie.
-        user_info = loads(session_token)
-        user_id = user_info["id"]
-        token = user_info["session_token"]
-        await validate_token(token, user_id, db)
+
+    # Reads the cookie.
+    user_info = loads(session_token)
+    user_id = user_info["id"]
+    token = user_info["session_token"]
+    await validate_token(token, user_id, db)
 
 
     try:
@@ -104,7 +104,8 @@ async def delete_group(
         response = JSONResponse(status_code=200,
                         content={"success": f"group {group_code} has successfully been deleted"})
 
-        user_info["group_codes"].remove(group_code)
+        #user_info["group_codes"].remove(group_code)
+        del user_info["group_codes"][group_code]
         cookie_data = dumps(user_info)
         response.set_cookie(
             key="session_token",
