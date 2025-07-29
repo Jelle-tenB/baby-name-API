@@ -11,9 +11,8 @@ Also automatically logs the user in by creating a cookie.
 # Standard Library
 from typing import Annotated
 from secrets import token_hex
-from datetime import timedelta
+from datetime import timedelta, datetime
 from json import dumps
-from datetime import datetime
 
 # Third-Party Libraries
 from pydantic import BaseModel, Field as field
@@ -65,8 +64,6 @@ async def create_new_user(
     Password MUST be between 8 and 32 characters long.\n
     The user will be logged in automatically by creating a session token cookie.\n"""
 
-    headers = request.headers
-
     hashed_password = hash_pwd(item.password)
     session_token = token_hex(20)
     session_expiration = timelater()
@@ -97,7 +94,7 @@ async def create_new_user(
     origin = request.headers.get("origin")
 
     if not origin:
-        origin = headers["host"]
+        origin = request.headers["host"]
 
     if origin in ["https://babynamegenerator.roads-technology.nl",
                 "https://apibabynamegenerator.roads-technology.nl",
@@ -116,7 +113,7 @@ async def create_new_user(
             "id": user_id,
             "session_token": session_token,
             "username": str(username),
-            "group_codes": []}
+            "group_codes": {}}
 
     cookie_data = dumps(data)
 

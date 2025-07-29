@@ -23,10 +23,13 @@ from fastapi import Depends, Query, HTTPException, Request, Cookie
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse
 from uvicorn import run
-from aiosqlite import Connection, Error
+from aiosqlite import Connection, Error # pylint: disable=unused-argument
 
 # Local Application Imports
-from imports import app, static_path, get_db, check_letter, SuccessResponse, ErrorResponse, limiter, validate_token
+from imports import (
+    app, static_path, limiter,
+    get_db, check_letter,  validate_token,
+    SuccessResponse, ErrorResponse)
 from login import login_router
 from new_user import new_user_router
 from user_liked import liked_router

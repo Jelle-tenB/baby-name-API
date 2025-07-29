@@ -78,18 +78,24 @@ async def login(
     With a maximum of 5 attempts, user will be locked out after the fifth failed attempt.
     """
 
-    headers = request.headers
-
     # Query to find the user's data.
     query = """
     SELECT username, password, user_id FROM users WHERE username = ?;
     """
 
-    # Query to find the group code(s) a user might be in.
     groupcode_query = """
-    SELECT group_code FROM groups
-    JOIN link_users ON groups.group_id = link_users.group_id
-    WHERE user_id = ?;
+    SELECT CAST(g.group_code AS TEXT),
+        u.username
+    FROM link_users AS lu_self
+    JOIN groups AS g 
+    ON g.group_id = lu_self.group_id
+    LEFT JOIN link_users AS lu_other 
+    ON lu_other.group_id = lu_self.group_id
+    AND lu_other.user_id <> lu_self.user_id
+    LEFT JOIN users AS u 
+    ON u.user_id = lu_other.user_id
+    WHERE lu_self.user_id = ?
+    ORDER BY g.group_code, u.username;
     """
 
     username = item.username.lower()
@@ -201,7 +207,9 @@ async def login(
         session_token = await save_session_token(user_id=user_id, db=db)
 
         async with db.execute(groupcode_query, (user_id,)) as cursor:
-            group_codes = [i[0] for i in await cursor.fetchall()]
+            rows = await cursor.fetchall()
+
+        group_codes = {group_code: (username or "") for group_code, username in rows}
 
         response = JSONResponse(
             content={"success": f"{username}",
@@ -212,7 +220,7 @@ async def login(
         origin = request.headers.get("origin")
 
         if not origin:
-            origin = headers["host"]
+            origin = request.headers["host"]
             print(origin, "test1")
 
         if origin in ["https://babynamegenerator.roads-technology.nl",
@@ -246,7 +254,7 @@ async def login(
             response.set_cookie(
                 key='session_token',
                 value=cookie_data,
-                httponly=False,  # Prevent JavaScript from accessing the cookie
+                httponly=False,
                 secure=True,    # Use True in production to send cookie over HTTPS only
                 max_age=maxage,
                 samesite='lax',    # Helps with CSRF protection
@@ -255,7 +263,7 @@ async def login(
             response.set_cookie(
                 key='session_token',
                 value=cookie_data,
-                httponly=True,  # Prevent JavaScript from accessing the cookie
+                httponly=False,
                 secure=True,    # Use True in production to send cookie over HTTPS only
                 max_age=maxage,
                 samesite='lax',    # Helps with CSRF protection
