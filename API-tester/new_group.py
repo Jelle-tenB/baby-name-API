@@ -7,7 +7,6 @@ Max 2 users per group.
 Returns a group code that is 6 characters long.
 The group code is unique and is used to identify the group.
 """
-#TODO: fix this endpoint!
 
 # Standard Library
 from json import loads, dumps

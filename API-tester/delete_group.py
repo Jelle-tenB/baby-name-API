@@ -55,7 +55,6 @@ async def delete_group(
     token = user_info["session_token"]
     await validate_token(token, user_id, db)
 
-
     try:
         # Query to check if user is indeed in the given group.
         code_query = """
@@ -73,12 +72,23 @@ async def delete_group(
             if user_id in rows:
                 pass
             else:
-                raise HTTPException(status_code=401, detail=f"you are not in group: {group_code}")
+                raise HTTPException(status_code=401, detail=f"error: you are not in group {group_code}")
         else:
-            raise HTTPException(status_code=401, detail=f"you are not in group: {group_code}")
+            raise HTTPException(status_code=401, detail=f"error: you are not in group {group_code}")
 
     except Error as e:
         raise HTTPException(status_code=400, detail="error: database error") from e
+
+    # check if the group has 1 or 2 users
+    count_query = """
+        SELECT COUNT(*)
+        FROM link_users
+        WHERE group_id = (
+            SELECT group_id
+            FROM groups
+            WHERE group_code = ?
+        );
+    """
 
     # delete dependent rows first
     delete_link_query = """
@@ -96,23 +106,45 @@ async def delete_group(
         WHERE group_code = ?;
     """
 
-    try:
-        await db.execute(delete_link_query, (group_code,))
-        await db.execute(delete_group_query, (group_code,))
-        await db.commit()
-
-        response = JSONResponse(status_code=200,
-                        content={"success": f"group {group_code} has successfully been deleted"})
-
-        #user_info["group_codes"].remove(group_code)
-        del user_info["group_codes"][group_code]
-        cookie_data = dumps(user_info)
-        response.set_cookie(
-            key="session_token",
-            value=cookie_data
+    # delete only the link to the user, if there are 2 users in the group.
+    only_link_query = """
+        DELETE FROM link_users
+        WHERE group_id = (
+            SELECT group_id
+            FROM groups
+            WHERE group_code = ?
         )
+        AND user_id = ?;
+    """
 
-        return response
-
+    try:
+        async with db.execute(count_query, (group_code,)) as cursor:
+            row = await cursor.fetchone()
     except Error as e:
-        raise HTTPException(status_code=400, detail="error: database error") from e
+        raise HTTPException(status_code=500, detail="error: database error") from e
+
+    if row[0] < 2:
+        try:
+            await db.execute(delete_link_query, (group_code,))
+            await db.execute(delete_group_query, (group_code,))
+            await db.commit()
+        except Error as e:
+            raise HTTPException(status_code=500, detail="error: database error") from e
+    else:
+        try:
+            await db.execute(only_link_query, (group_code, user_id,))
+            await db.commit()
+        except Error as e:
+            raise HTTPException(status_code=500, detail="error: database error") from e
+
+    response = JSONResponse(status_code=200,
+                    content={"success": f"group {group_code} has successfully been deleted for you"})
+
+    del user_info["group_codes"][group_code]
+    cookie_data = dumps(user_info)
+    response.set_cookie(
+        key="session_token",
+        value=cookie_data
+    )
+
+    return response

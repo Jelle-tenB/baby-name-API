@@ -63,15 +63,15 @@ async def protected_route(
 
     # Query to find a user's group code
     groupcode_query = """
-        SELECT g.group_code,
+        SELECT CAST(g.group_code AS TEXT),
             u.username
         FROM link_users AS lu_self
-        JOIN link_users AS lu_other 
-        ON lu_other.group_id = lu_self.group_id
-        AND lu_other.user_id <> lu_self.user_id
         JOIN groups AS g 
         ON g.group_id = lu_self.group_id
-        JOIN users AS u 
+        LEFT JOIN link_users AS lu_other 
+        ON lu_other.group_id = lu_self.group_id
+        AND lu_other.user_id <> lu_self.user_id
+        LEFT JOIN users AS u 
         ON u.user_id = lu_other.user_id
         WHERE lu_self.user_id = ?
         ORDER BY g.group_code, u.username;
@@ -80,7 +80,7 @@ async def protected_route(
     async with db.execute(groupcode_query, (user_id,)) as cursor:
         rows = await cursor.fetchall()
 
-    group_codes = {group_code: username for group_code, username in rows}
+    group_codes = {group_code: (username or "") for group_code, username in rows}
 
     data = {
         "id": user_id,

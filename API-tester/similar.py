@@ -28,7 +28,7 @@ similar_router = APIRouter()
                     "example":
                         {"error: not a valid name_id"}
 }}}})
-#@limiter.limit("10/minute")
+@limiter.limit("10/minute")
 async def similar(
     # Request might seem unused, but it is used by the limiter
     request: Request, # pylint: disable=unused-argument

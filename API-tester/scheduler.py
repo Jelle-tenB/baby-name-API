@@ -45,6 +45,16 @@ dislikes_query = """
         OR name_id NOT IN (SELECT id FROM names);
     """
 
+unused_linked_user_query = """
+    DELETE FROM users
+    WHERE user_id NOT IN (SELECT user_id FROM link_users)
+        AND last_login < datetime('now', '-3 months');
+    """
+
+unused_user_query = """
+    DELETE FROM users
+    WHERE last_login < datetime('now', '-1 year');
+    """
 
 
 def start_scheduler(db_path: str):
@@ -72,6 +82,14 @@ def start_scheduler(db_path: str):
             async with db.execute(dislikes_query):
                 await db.commit()
                 print("✅ user dislikes cleaned up.")
+
+            async with db.execute(unused_linked_user_query):
+                await db.commit()
+                print("✅ unused linked users cleaned up.")
+
+            async with db.execute(unused_user_query):
+                await db.commit()
+                print("✅ unused users cleaned up.")
 
         print("✅ cleanup complete.")
 

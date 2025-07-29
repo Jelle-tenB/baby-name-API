@@ -84,7 +84,6 @@ async def compare_likes(
         LEFT JOIN countries c ON p.country_id = c.id
         WHERE n.id NOT IN (SELECT name_id FROM user_own_names)
         GROUP BY n.id, n.name, n.gender;
-
     """
 
     # Check if the group code is valid.
