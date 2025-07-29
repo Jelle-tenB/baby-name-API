@@ -58,7 +58,7 @@ class Item(BaseModel):
                     "example":
                         {"error: incorrect username or password."}
 }}}})
-@limiter.limit("5/minute")
+#@limiter.limit("5/minute")
 async def login(
     item: Item,
     request: Request, # pylint: disable=unused-argument
