@@ -94,7 +94,7 @@ async def read_index():
                 "application/json": {
                     "example": {"error: 'character' in parameter 'X' is not a letter, please enter only letters"}
 }}}})
-@limiter.limit("10/minute")
+#@limiter.limit("10/minute")
 async def search_first_letter(
     # Request might seem unused, but it is used by the limiter
     request: Request, # pylint: disable=unused-argument
