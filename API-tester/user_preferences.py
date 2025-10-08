@@ -7,6 +7,7 @@ Takes a list of name_id(s) to be liked or disliked.
 # Standard library imports
 from json import loads
 from typing import List, Optional
+from os import getenv
 
 # Third-party library imports
 from fastapi import HTTPException, APIRouter, Depends, Cookie, Request
@@ -15,10 +16,11 @@ from aiosqlite import Connection, Error
 from pydantic import BaseModel, Field as field
 
 # Local application imports
-from imports import get_db, limiter, validate_token
+from imports import get_db, limiter, validate_token, load_project_dotenv
 
 
 user_preferences_router = APIRouter()
+load_project_dotenv()
 
 
 class Item(BaseModel):
@@ -79,10 +81,11 @@ async def user_preferences(
     liked_names_to_insert = []
 
     if liked:
-        # First, get the list of name_ids the user has already liked
+        # First, get the list of name_ids the user has already disliked
         placeholders = ",".join("?" for _ in liked)
+        FIND_DISLIKED = str(getenv("FIND_DISLIKED"))
         async with db.execute(
-            f"SELECT name_id FROM user_disliked WHERE user_id = ? AND name_id IN ({placeholders})",
+            f"{FIND_DISLIKED.format(placeholders=placeholders)}",
             (user_id, *liked)
         ) as cursor:
             disliked_ids = {row[0] for row in await cursor.fetchall()}
@@ -92,7 +95,7 @@ async def user_preferences(
 
         liked_names_to_insert = [(name_id, user_id) for name_id in names_disliked]
 
-        liked_query = "INSERT OR IGNORE INTO user_liked (name_id, user_id) VALUES (?, ?);"
+        liked_query = getenv("INSERT_LIKED_NAMES")
 
         try:
             await db.executemany(liked_query, liked_names_to_insert)
@@ -104,8 +107,9 @@ async def user_preferences(
     if disliked:
         # First, get the list of name_ids the user has already liked
         placeholders = ",".join("?" for _ in disliked)
+        FIND_LIKED = str(getenv("FIND_LIKED"))
         async with db.execute(
-            f"SELECT name_id FROM user_liked WHERE user_id = ? AND name_id IN ({placeholders})",
+            f"{FIND_LIKED.format(placeholders=placeholders)}",
             (user_id, *disliked)
         ) as cursor:
             liked_ids = {row[0] for row in await cursor.fetchall()}
@@ -115,7 +119,7 @@ async def user_preferences(
 
         disliked_names_to_insert = [(name_id, user_id) for name_id in names_liked]
 
-        disliked_query = "INSERT OR IGNORE INTO user_disliked (name_id, user_id) VALUES (?, ?);"
+        disliked_query = getenv("INSERT_DISLIKED_NAMES")
 
         try:
             await db.executemany(disliked_query, disliked_names_to_insert)

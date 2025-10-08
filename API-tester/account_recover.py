@@ -5,6 +5,7 @@ Which allows a user to reset their password using a recovery token.
 
 # Standard Library
 from typing import Annotated
+from os import getenv
 
 # Third-Party Libraries
 from fastapi import HTTPException, APIRouter, Depends, Request
@@ -13,10 +14,12 @@ from pydantic import BaseModel, Field as field
 from aiosqlite import Connection, Error
 
 # Local Application Imports
-from imports import get_db, hash_pwd, limiter
+from imports import get_db, limiter, load_project_dotenv
+from password import hash_pwd
 
 
 account_recover_router = APIRouter()
+load_project_dotenv()
 
 
 class Item(BaseModel):
@@ -44,9 +47,7 @@ async def recovery(
 
     hashed_password = hash_pwd(item.new_password)
 
-    find_code = """
-    SELECT recovery_token FROM users WHERE username = ?;
-    """
+    find_code = getenv("FIND_CODE")
 
     try:
         async with db.execute(find_code, (username,)) as cursor:
@@ -60,11 +61,7 @@ async def recovery(
         raise HTTPException(status_code=404, detail="error: username not found")
 
     if stored_token == recovery_code:
-        query = """
-        UPDATE users
-        SET password = ?
-        WHERE username = ?;
-        """
+        query = getenv("SET_CODE")
 
         try:
             await db.execute(query, (hashed_password, username))

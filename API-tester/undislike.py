@@ -7,6 +7,7 @@ The user must provide a list of name ID(s) to remove from the disliked list.
 # Standard library imports
 from typing import List
 from json import loads
+from os import getenv
 
 # Third-party library imports
 from fastapi import HTTPException, APIRouter, Depends, Cookie, Query, Request
@@ -14,10 +15,11 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection, Error
 
 # Local application imports
-from imports import get_db, limiter, validate_token
+from imports import get_db, limiter, validate_token, load_project_dotenv
 
 
 undislike_router = APIRouter()
+load_project_dotenv()
 
 
 @undislike_router.delete("/undislike",
@@ -60,11 +62,8 @@ async def undislike(
         placeholders = ', '.join(['?'] * len(name_ids))
         params = [user_id] + name_ids
 
-        query = f"""
-        DELETE FROM user_disliked
-        WHERE user_id = ?
-            AND name_id IN ({placeholders});
-        """
+        UNDISLIKE_QUERY = str(getenv("UNDISLIKE_QUERY"))
+        query = f"{UNDISLIKE_QUERY.format(placeholders=placeholders)}"
 
         await db.execute(query, params)
         await db.commit()

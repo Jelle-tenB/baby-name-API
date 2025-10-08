@@ -6,6 +6,7 @@ That user has to be logged in.
 
 # Standard Library
 from json import loads
+from os import getenv
 
 # Third-Party Libraries
 from fastapi import HTTPException, APIRouter, Depends, Cookie, Request
@@ -13,10 +14,11 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection, Error
 
 # Local Application Imports
-from imports import get_db, limiter, validate_token
+from imports import get_db, limiter, validate_token, load_project_dotenv
 
 
 group_liked_router = APIRouter()
+load_project_dotenv()
 
 @group_liked_router.get("/group_liked",
     responses={
@@ -60,60 +62,7 @@ async def group_liked(
     await validate_token(token, user_id, db)
 
     # Query to find the names BOTH users in the group(s) have liked.
-    query = """
-    WITH UserGroups AS (
-        -- Fetch the groups the specified user belongs to
-        SELECT group_id
-        FROM link_users
-        WHERE user_id = ?
-    ),
-    GroupUsers AS (
-        -- Fetch all users in the groups the user belongs to
-        SELECT
-            g.group_id,
-            lu.user_id
-        FROM
-            link_users lu
-            JOIN UserGroups g ON lu.group_id = g.group_id
-    ),
-    GroupUserLikes AS (
-        -- Fetch all names liked by users in each group
-        SELECT
-            gu.group_id,
-            gu.user_id,
-            ul.name_id
-        FROM
-            GroupUsers gu
-            JOIN user_liked ul ON gu.user_id = ul.user_id
-    ),
-    GroupCommonLikes AS (
-        -- Identify names liked by all users in a group
-        SELECT
-            gul.group_id,
-            gul.name_id,
-            COUNT(DISTINCT gul.user_id) AS user_count,
-            (SELECT COUNT(DISTINCT user_id) FROM GroupUsers gu WHERE gu.group_id = gul.group_id) AS group_user_count
-        FROM
-            GroupUserLikes gul
-        GROUP BY
-            gul.group_id, gul.name_id
-        HAVING
-            user_count = group_user_count
-    )
-    -- Output results: group code, name ID, and name
-    SELECT
-        g.group_code,
-        n.id AS name_id,
-        n.name AS name
-    FROM
-        GroupCommonLikes gcl
-        JOIN names n ON gcl.name_id = n.id
-        JOIN groups g ON gcl.group_id = g.group_id
-    WHERE
-        (SELECT COUNT(*) FROM GroupUsers gu WHERE gu.group_id = gcl.group_id) > 1 -- Ensure group has multiple users
-    ORDER BY
-        g.group_code, n.name;
-    """
+    query = getenv("GROUP_LIKED_NAMES")
 
     try:
         async with db.execute(query, (user_id,)) as cursor:

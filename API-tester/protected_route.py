@@ -7,6 +7,7 @@ The session token is validated and a new session token is generated and returned
 # Standard library imports
 from json import dumps, loads
 from datetime import timedelta
+from os import getenv
 
 # Third-party library imports
 from fastapi import HTTPException, Depends, Cookie, APIRouter, Request
@@ -14,10 +15,11 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection
 
 # Local application imports
-from imports import get_db, save_session_token, limiter, validate_token
+from imports import get_db, save_session_token, limiter, validate_token, load_project_dotenv
 
 
 cookie_router = APIRouter()
+load_project_dotenv()
 
 
 @cookie_router.get("/cookie",
@@ -62,20 +64,7 @@ async def protected_route(
     maxage = int(timedelta(hours=12).total_seconds())
 
     # Query to find a user's group code
-    groupcode_query = """
-        SELECT CAST(g.group_code AS TEXT),
-            u.username
-        FROM link_users AS lu_self
-        JOIN groups AS g 
-        ON g.group_id = lu_self.group_id
-        LEFT JOIN link_users AS lu_other 
-        ON lu_other.group_id = lu_self.group_id
-        AND lu_other.user_id <> lu_self.user_id
-        LEFT JOIN users AS u 
-        ON u.user_id = lu_other.user_id
-        WHERE lu_self.user_id = ?
-        ORDER BY g.group_code, u.username;
-        """
+    groupcode_query = getenv("GROUPCODE_QUERY")
 
     async with db.execute(groupcode_query, (user_id,)) as cursor:
         rows = await cursor.fetchall()

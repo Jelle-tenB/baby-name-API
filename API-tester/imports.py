@@ -5,7 +5,7 @@ To prevent circular imports.
 
 # Standard Library
 from threading import local
-from os import path
+from os import path, getenv
 from datetime import datetime, timedelta
 from typing import List
 from secrets import token_hex
@@ -14,12 +14,12 @@ from contextlib import asynccontextmanager
 # Third-Party Libraries
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from passlib.context import CryptContext
 from pydantic import BaseModel, Field, RootModel
 from slowapi import Limiter, _rate_limit_exceeded_handler as rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from aiosqlite import connect, Connection, IntegrityError
+from dotenv import load_dotenv
 
 # Local Application Imports
 from scheduler import start_scheduler
@@ -31,11 +31,27 @@ basedir = path.abspath(path.dirname(__file__))
 db_path = path.join(basedir, 'static', 'names.db')
 static_path = path.join(basedir, 'static')
 
+# Load environment variables from the .env file
+def load_project_dotenv():
+    """Load environment variables secrets."""
+    dotenv_path = path.join(path.dirname(__file__), '..', 'secrets.env')
+    load_dotenv(dotenv_path=dotenv_path)
+
+load_project_dotenv()
+
+
+def load_main_dotenv():
+    """Load environment variables secrets."""
+    dotenv_path = path.join(path.dirname(__file__), '..', 'main_secrets.env')
+    load_dotenv(dotenv_path=dotenv_path)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan event handler to start the scheduler when the app starts."""
     start_scheduler(db_path)  # Start scheduler when app starts
     yield
+
 
 # Slowapi rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -43,7 +59,6 @@ app = FastAPI(lifespan=lifespan, title="Pick-A-Name API",
                 description="API for the Pick-A-Name application")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler) # type: ignore
-
 
 maxage = int(timedelta(hours=24).total_seconds())
 
@@ -90,6 +105,7 @@ async def get_db():
     finally:
         await db.close()
 
+
 def check_letter(check):
     """Character checks to ensure only letters."""
 
@@ -114,13 +130,6 @@ def check_letter(check):
                         please enter only letters""")
 
 
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-def hash_pwd(password: str) -> str:
-    """Hash the password"""
-
-    return pwd_context.hash(password)
-
-
 def timelater():
     """24 hours later, for automatic session expiration."""
 
@@ -133,9 +142,7 @@ async def save_session_token(user_id: int, db: Connection = Depends(get_db)):
     """Save new session token in the DB"""
 
     # Query to save the cookie's session token to the DB.
-    query = """
-    UPDATE users SET session_token = ?, session_expiration = ?, last_login = ? WHERE user_id = ?;
-    """
+    query = getenv("SAVE_SESSION_TOKEN")
 
     session_token = token_hex(20)
     session_expiration = timelater()
@@ -154,9 +161,7 @@ async def validate_token(session_token, user_id, db: Connection):
     """Checks the session token in the cookie against the token in the database"""
 
     # Query to find the user's current session token.
-    query = """
-    SELECT session_expiration, username, session_token FROM users WHERE user_id = ?
-    """
+    query = getenv("FIND_SESSION_TOKEN")
 
     try:
         async with db.execute(query, (user_id,)) as cursor:

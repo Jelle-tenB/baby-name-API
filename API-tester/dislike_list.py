@@ -4,6 +4,7 @@ Returns a list of all the names the user has DISliked.
 
 # Standard Library
 from json import loads
+from os import getenv
 
 # Third-Party Libraries
 from fastapi import HTTPException, APIRouter, Depends, Cookie, Request
@@ -11,10 +12,11 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection, Error
 
 # Local Application Imports
-from imports import get_db, SuccessResponse, ErrorResponse, limiter
+from imports import get_db, SuccessResponse, ErrorResponse, limiter, load_project_dotenv
 
 
 dislike_list_router = APIRouter()
+load_project_dotenv()
 
 @dislike_list_router.get("/dislike_list",
     response_model=SuccessResponse,
@@ -36,20 +38,8 @@ async def like_list(
     if not session_token:
         raise HTTPException(status_code=401, detail="not logged in")
 
-    # Query to find ALL the names the given user has liked.
-    query = """
-    SELECT
-        names.id,
-        names.name,
-        names.gender,
-        countries.country,
-        population.pop
-    FROM user_disliked
-    JOIN names ON user_disliked.name_id = names.id
-    JOIN population ON names.id = population.name_id
-    JOIN countries ON population.country_id = countries.id
-    WHERE user_disliked.user_id = ?;
-    """
+    # Query to find ALL the names the given user has disliked.
+    query = getenv("DISLIKE_LIST")
 
     # Reads the cookie.
     data = loads(session_token)

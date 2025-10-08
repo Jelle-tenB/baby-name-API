@@ -17,6 +17,7 @@ If a user is logged in, the search will filter out names already liked/disliked 
 # Standard Library
 from json import loads
 from typing import Optional, List
+from os import getenv
 
 # Third-Party Libraries
 from fastapi import Depends, Query, HTTPException, Request, Cookie
@@ -29,7 +30,7 @@ from aiosqlite import Connection, Error # pylint: disable=unused-argument
 from imports import (
     app, static_path, limiter,
     get_db, check_letter,  validate_token,
-    SuccessResponse, ErrorResponse)
+    SuccessResponse, ErrorResponse, load_main_dotenv)
 from login import login_router
 from new_user import new_user_router
 from user_liked import liked_router
@@ -50,6 +51,8 @@ from compare_likes import compare_likes_router
 from user_preferences import user_preferences_router
 from logout import logout_router
 
+
+load_main_dotenv()
 
 # Router to add the API methods to /docs.
 app.include_router(cookie_router)
@@ -94,7 +97,7 @@ async def read_index():
                 "application/json": {
                     "example": {"error: 'character' in parameter 'X' is not a letter, please enter only letters"}
 }}}})
-#@limiter.limit("10/minute")
+@limiter.limit("10/minute")
 async def search_first_letter(
     # Request might seem unused, but it is used by the limiter
     request: Request, # pylint: disable=unused-argument
@@ -137,48 +140,43 @@ async def search_first_letter(
     checklist = {}
 
     # Starting query to which more params are given.
-    query = '''
-        SELECT names.*, countries.country, population.pop
-        FROM population
-        JOIN names ON population.name_id = names.id
-        JOIN countries ON population.country_id = countries.id
-        WHERE 1=1
-    '''
+    query = str(getenv("STARTING_QUERY"))
 
     # Empty parameters Tuple to add more params to.
     params = ()
 
     if start == 0: # Optional param to search for names with given letter(s) SOMEWHERE in the name.
         if query_letter:
-            query += " AND names.name LIKE ?"
+            query += str(getenv("LETTER_QUERY"))
             params += ('%' + query_letter + '%',)
             checklist.update({"letter": query_letter})
     else: # Starting letter only.
         if query_letter:
-            query += " AND names.name LIKE ?"
+            query += str(getenv("LETTER_QUERY"))
             params += (query_letter + '%',)
             checklist.update({"letter": query_letter})
 
     if query_gender:
         if '?' in query_gender:
             if query_gender == '?': # If asked for neutral gender it adds mostly female/male too.
-                query += " AND (names.gender = '?' OR names.gender = '?M' OR names.gender = '?F')"
+                query += str(getenv("NEUTRAL_GENDER_QUERY"))
             else:
-                query += " AND names.gender = ?"
+                query += str(getenv("MIXED_GENDER_QUERY"))
                 params += (query_gender,)
         else:
-            query += " AND (names.gender = ? OR names.gender = ?)"
+            query += str(getenv("GENDER_QUERY"))
             params += (query_gender, '?' + query_gender)
         checklist.update({"gender": query_gender.strip('?')})
 
     if query_country:  # Check if the list is not empty
         if len(query_country) == 1:
-            query += " AND countries.country = ?"
+            query += str(getenv("SINGLE_COUNTRY_QUERY"))
             params += (query_country[0],)  # Use the first element
             checklist.update({"country": query_country})
         else: # Allows multiple countries
             placeholders = ",".join("?" for _ in query_country)
-            query += f" AND countries.country IN ({placeholders})"
+            MULTI_COUNTRIES_QUERY = str(getenv("MULTI_COUNTRIES_QUERY"))
+            query += f"{MULTI_COUNTRIES_QUERY.format(placeholders=placeholders)}"
             params += tuple(query_country)
             checklist.update({"country": query_country})
 
@@ -193,10 +191,7 @@ async def search_first_letter(
 
         await validate_token(token, user_id, db)
 
-        query += '''
-            AND names.id NOT IN (SELECT name_id FROM user_liked WHERE user_id = ?)
-            AND names.id NOT IN (SELECT name_id FROM user_disliked WHERE user_id = ?)
-            '''
+        query += str(getenv("FILTER_ALREADY_LIKED_QUERY"))
         params += (user_id, user_id)
 
     try:

@@ -13,6 +13,7 @@ from typing import Annotated
 from secrets import token_hex
 from datetime import timedelta, datetime
 from json import dumps
+from os import getenv
 
 # Third-Party Libraries
 from pydantic import BaseModel, Field as field
@@ -21,10 +22,12 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection, Error
 
 # Local Application Imports
-from imports import get_db, hash_pwd, timelater, set_recovery_token, limiter
+from imports import get_db, timelater, set_recovery_token, limiter, load_project_dotenv
+from password import hash_pwd
 
 
 new_user_router = APIRouter()
+load_project_dotenv()
 
 
 class Item(BaseModel):
@@ -72,10 +75,7 @@ async def create_new_user(
     username = item.username.lower()
 
     # Query to save the user login information.
-    query = """
-    INSERT INTO users (username, password, session_token, session_expiration, recovery_token, last_login)
-    VALUES (?, ?, ?, ?, ?, ?);
-    """
+    query = getenv("INSERT_NEW_USER")
 
     try:
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

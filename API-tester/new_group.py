@@ -11,6 +11,7 @@ The group code is unique and is used to identify the group.
 # Standard Library
 from json import loads, dumps
 from secrets import token_hex
+from os import getenv
 
 # Third-Party Libraries
 from fastapi import HTTPException, APIRouter, Depends, Cookie, Request
@@ -18,10 +19,11 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection, Error
 
 # Local Application Imports
-from imports import get_db, limiter
+from imports import get_db, limiter, load_project_dotenv
 
 
 new_group_router = APIRouter()
+load_project_dotenv()
 
 
 async def check_group_code(db):
@@ -29,7 +31,7 @@ async def check_group_code(db):
 
     while True:
         group_code = str(token_hex(3))
-        query = "SELECT 1 FROM groups WHERE group_code = ?;"
+        query = getenv("CHECK_GROUPCODE_EXISTS")
         params: tuple[str] = (group_code,)
         async with db.execute(query, params) as cursor:
             # If no result is found, it means the code is unique
@@ -77,9 +79,7 @@ async def new_group(
 
     try:
         # Query to see how many groups the user might be in.
-        existing_group = """
-        SELECT COUNT(*) FROM link_users WHERE user_id = ?;
-        """
+        existing_group = getenv("COUNT_USER_GROUPS")
 
         params: tuple[int] = (user_id,) # type: ignore
         async with db.execute(existing_group, params) as cursor:
@@ -88,14 +88,10 @@ async def new_group(
 
         # Prevents users from having more than 2 groups.
         if group_count >= 2:
-            return JSONResponse(
-                content={"error": f"user {user_name} already has 2 groups"},
-                status_code=400)
+            raise HTTPException(status_code=400, detail=f"error: user {user_name} already has 2 groups")
 
         # Query to save the group code.
-        insert_code = """
-        INSERT INTO groups (group_code) VALUES (?) RETURNING group_id;
-        """
+        insert_code = getenv("INSERT_GROUPCODE")
 
         params: tuple[str] = (group_code,) # type: ignore
         async with db.execute(insert_code, params) as cursor:
@@ -106,9 +102,7 @@ async def new_group(
             await db.commit()
 
         # Query to save the link between users.
-        insert_link = """
-        INSERT INTO link_users (user_id, group_id) VALUES (?, ?);
-        """
+        insert_link = getenv("INSERT_GROUP_LINK")
 
         params: tuple[int, int] = (user_id, group_id,)
         await db.execute(insert_link, params)

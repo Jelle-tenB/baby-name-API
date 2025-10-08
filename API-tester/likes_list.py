@@ -5,6 +5,7 @@ Based on the user_id stored in the cookie.
 
 # Standard Library Imports
 from json import loads
+from os import getenv
 
 # Third-Party Libraries
 from fastapi import HTTPException, APIRouter, Depends, Cookie, Request
@@ -12,10 +13,11 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection, Error
 
 # Local Application Imports
-from imports import get_db, SuccessResponse, ErrorResponse, limiter
+from imports import get_db, SuccessResponse, ErrorResponse, limiter, load_project_dotenv
 
 
 like_list_router = APIRouter()
+load_project_dotenv()
 
 @like_list_router.get("/like_list",
     response_model=SuccessResponse,
@@ -38,19 +40,7 @@ async def like_list(
         raise HTTPException(status_code=401, detail="not logged in")
 
     # Query to find ALL the names the given user has liked.
-    query = """
-    SELECT
-        names.id,
-        names.name,
-        names.gender,
-        countries.country,
-        population.pop
-    FROM user_liked
-    JOIN names ON user_liked.name_id = names.id
-    JOIN population ON names.id = population.name_id
-    JOIN countries ON population.country_id = countries.id
-    WHERE user_liked.user_id = ?;
-    """
+    query = getenv("LIKE_LIST")
 
     # Reads the cookie.
     data = loads(session_token)

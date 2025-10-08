@@ -7,6 +7,7 @@ Maximum of 2 groups per user and max 2 users per group.
 # Standard Library
 from typing import Annotated
 from json import loads, dumps
+from os import getenv
 
 # Third-Party Libraries
 from pydantic import BaseModel, Field as field
@@ -15,10 +16,11 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection, Error
 
 # Local Application Imports
-from imports import get_db, limiter, validate_token
+from imports import get_db, limiter, validate_token, load_project_dotenv
 
 
 add_to_group_router = APIRouter()
+load_project_dotenv()
 
 
 class Item(BaseModel):
@@ -66,11 +68,7 @@ async def add_to_group(
     group_code = item.group_code.lower()
 
     # Query to check how many groups a user is in.
-    count_user ="""
-    SELECT COUNT(*)
-    FROM link_users
-    WHERE user_id = ?;
-    """
+    count_user = getenv("COUNT_USER_GROUPS")
     try:
         async with db.execute(count_user, (user_id,)) as cursor:
             row = await cursor.fetchone()
@@ -79,11 +77,7 @@ async def add_to_group(
         raise HTTPException(status_code=500, detail="error: database error") from e
 
     # Query to check if the group exists.
-    check_group = """
-    SELECT group_id
-    FROM groups
-    WHERE group_code = ?;
-    """
+    check_group = getenv("CHECK_GROUP_EXISTS")
 
     try:
         async with db.execute(check_group, (group_code,)) as cursor:
@@ -93,26 +87,17 @@ async def add_to_group(
         raise HTTPException(status_code=500, detail="error: database error") from e
 
     if group_id is None:
-        return JSONResponse(
-            content={"error": f"group {group_code} does not exist"},
-            status_code=404)
+        raise HTTPException(status_code=404, detail=f"error: group {group_code} not found")
 
     # Prevent users from having more than 2 groups.
     if user_count is None:
         raise HTTPException(status_code=400, detail="error: user not found")
     if user_count >= 2:
-        return JSONResponse(
-        content={"error": f"user {username} already has 2 groups"},
-        status_code=401)
+        raise HTTPException(status_code=401, detail=f"user {username} already has 2 groups")
 
     try:
         # Query to add the user to the given group.
-        query = """
-        INSERT INTO link_users (user_id, group_id)
-        SELECT ?, group_id
-        FROM groups
-        WHERE group_code = ?;
-        """
+        query = getenv("ADD_TO_GROUP")
 
         await db.execute(query, (user_id, group_code))
         await db.commit()
@@ -120,20 +105,7 @@ async def add_to_group(
         response = JSONResponse(status_code=200,
                         content={"success": f"user added to group {group_code}"})
         
-        groupcode_query = """
-            SELECT g.group_code,
-                u.username
-            FROM link_users AS lu_self
-            JOIN link_users AS lu_other 
-            ON lu_other.group_id = lu_self.group_id
-            AND lu_other.user_id <> lu_self.user_id
-            JOIN groups AS g 
-            ON g.group_id = lu_self.group_id
-            JOIN users AS u 
-            ON u.user_id = lu_other.user_id
-            WHERE lu_self.user_id = ?
-            ORDER BY g.group_code, u.username;
-            """
+        groupcode_query = getenv("GROUPCODE_QUERY")
 
         async with db.execute(groupcode_query, (user_id,)) as cursor:
             rows = await cursor.fetchall()

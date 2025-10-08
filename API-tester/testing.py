@@ -374,7 +374,7 @@ async def test_add_to_invalid_group():
 
         # Check response body
         json_response = response.json()
-        assert "error" in json_response
+        assert "error" in json_response["detail"]
 
 
 @pytest.mark.asyncio

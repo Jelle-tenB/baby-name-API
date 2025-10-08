@@ -10,7 +10,7 @@
     "show": 511,
     "database": 32,
     "databaseName": "",
-    "canvasType": "@dineug/erd-editor/builtin-schema-sql",
+    "canvasType": "ERD",
     "language": 1,
     "tableNameCase": 4,
     "columnNameCase": 2,
@@ -342,6 +342,32 @@
         "meta": {
           "updateAt": 1750761496994,
           "createAt": 1748426586037
+        }
+      },
+      "QqSxzVP021x3mUj8kdoxB": {
+        "id": "QqSxzVP021x3mUj8kdoxB",
+        "name": "hi",
+        "comment": "",
+        "columnIds": [
+          "8UO6nZjFVlCmKAJyQ_GDR",
+          "6RA663uPqzvCcEYQI68pc"
+        ],
+        "seqColumnIds": [
+          "8UO6nZjFVlCmKAJyQ_GDR",
+          "z-83jwgQWn2Ihd85q48kx",
+          "6RA663uPqzvCcEYQI68pc"
+        ],
+        "ui": {
+          "x": 1007.3171,
+          "y": 1544.7824,
+          "zIndex": 185,
+          "widthName": 60,
+          "widthComment": 60,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1758283402597,
+          "createAt": 1758283097991
         }
       }
     },
@@ -1304,6 +1330,66 @@
         "meta": {
           "updateAt": 1751545342686,
           "createAt": 1751545330447
+        }
+      },
+      "8UO6nZjFVlCmKAJyQ_GDR": {
+        "id": "8UO6nZjFVlCmKAJyQ_GDR",
+        "tableId": "QqSxzVP021x3mUj8kdoxB",
+        "name": "bye",
+        "comment": "",
+        "dataType": "",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1758283145502,
+          "createAt": 1758283142926
+        }
+      },
+      "z-83jwgQWn2Ihd85q48kx": {
+        "id": "z-83jwgQWn2Ihd85q48kx",
+        "tableId": "QqSxzVP021x3mUj8kdoxB",
+        "name": "vaag",
+        "comment": "",
+        "dataType": "",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1758283219854,
+          "createAt": 1758283217141
+        }
+      },
+      "6RA663uPqzvCcEYQI68pc": {
+        "id": "6RA663uPqzvCcEYQI68pc",
+        "tableId": "QqSxzVP021x3mUj8kdoxB",
+        "name": "vaag",
+        "comment": "",
+        "dataType": "",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1758283405438,
+          "createAt": 1758283402597
         }
       }
     },

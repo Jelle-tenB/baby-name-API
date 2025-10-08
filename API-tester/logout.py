@@ -5,6 +5,7 @@ Requires a valid session token to be passed in the cookie.
 
 # Standard library imports
 from json import loads
+from os import getenv
 
 # Third-party library imports
 from fastapi import HTTPException, Depends, Cookie, APIRouter, Request
@@ -12,9 +13,10 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection
 
 # Local application imports
-from imports import get_db, limiter, validate_token
+from imports import get_db, limiter, validate_token, load_project_dotenv
 
 logout_router = APIRouter()
+load_project_dotenv()
 
 @logout_router.get("/logout",
     responses={
@@ -51,12 +53,7 @@ async def logout(
 
     # Invalidate the session token in the database
     try:
-        query = """
-        UPDATE users
-        SET session_token = NULL,
-            session_expiration = NULL
-        WHERE user_id = ?;
-        """
+        query = getenv("RESET_SESSIONTOKEN")
         async with db.execute(query, (user_id,)):
             await db.commit()
     except Exception as e:
