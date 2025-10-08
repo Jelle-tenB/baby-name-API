@@ -1,30 +1,69 @@
-# Pick-A-Name / Baby name Tinder
+Color sugestions:
 
-## Description
+1st #ffd6e8 #aeddff #e7428c #dc3e88
+2nd #f1d665 #f7e2d3 #220c52 #272647 #ec508b #16a52a
 
-Greetings dear readers,\
-I have build a RESTful API connected to a SQLite3 database. With which you and your partner can find and *Like* / *Dislike* first names from our database of 45331 names.\
-You can search for names based on gender, country, starting letter(s) and/or letter(s) anywhere in the name. After creating an account you can add the names you like to your account. When your partner has done the same, one of you can create a group and the other can join by providing the group code (limited to 2 people per group). Now that you are both in the same group you can get a list of names you **both** have liked and pick and choose from there.
+# Pick-A-Name (WIP)
 
-The frontend for the website/app is currently being a build by others. When we are happy with the result I will probably include it here too.
+Greetings dear readers, <br>
+We are participants of Roads Technology and this our project to help others possibly pick a name for their child. Our [database](https://github.com/MatthiasWinkelmann/firstname-database) contains 45331 names and choosing between them can be quite the chore. So we made it possible to search / filter for names based on certain letters, gender and / or country. After making an account you can also swipe right (like) or swipe left (dislike) to save your preferences and compare them with your partner. <br>
+Currently you can only have 2 people in a group and you can be in a maximum of 2 groups.
 
-## Instructions
+## Important notice
+If you want to test the front-end website locally ALSO run the API locally. Otherwise the cookie wont work.
 
-* API-Backend is the main project
-* API-tester has an automated tester (testing.py) with Pytest and slightly altered code.
-* Fork this repository
-* Install the requirements (pip install -r API-Backend/requirements.txt)
-* Run main.py
-* Go to <http://127.0.0.1:5000/docs>
-  * Here you can find the API documentation and try it.
 
-![Fastapi-documentation](https://github.com/Roads-Deelnemer/Pick-A-Name/blob/main/API-Backend/static/fastapidocs.png?raw=true)
-
-## Contact
-
-You can reach me at: <jelle.tbroeke@gmail.com>
-
-## License
-
-You can use my code in any shape or form that you like, besides commercially.\
-The database is build off of a different database for which you can find the license [here](https://github.com/MatthiasWinkelmann/firstname-database)
+## Pages which can be worked on.
+  1. on all pages pages
+       1. color choices
+       2. styling choices
+       3. layout cohesion
+       4. create a check if user is logged in. if not redirect to login page (does not look feasible in js)
+  2. Welcome page
+       1. Intro text can be made.  ✔
+       2. Short explanation how this works.  ✔
+       3. Why we developed it. And for who.  ✔
+       4. Cookies for the site
+       5. create account and login directions
+  3. Create account page
+       1. update link on the eula to the finished page
+       2. give input on styling
+  5. Login Page
+       1. give input on styling
+ 6. recovery page
+     1. add error handling
+     2. give feedback on successful login
+  7. Account information page
+       1. Layout
+       2. Information about user's own account
+            * Username
+            * Password change
+            * Group codes
+       3. redirect to delete account
+  9. Group/partner page
+        1. Layout
+  11. Swiping page
+        1. give input for styling
+  13. Filter page
+        1. give input for styling
+  15. Like/Dislike page
+        1. Layout (MutualList1, Userlist1,MutualList2, Userlist2) 
+        2. Cookie Regelen
+        3. Function to transfer names (0.5)
+        4. Function to unlike or undislike name
+        5. Adding bubbles
+        6. add a counter function that can be applied with the transfer function
+        7. 
+  17. General information
+        1. About us
+        2. Copyright
+        3. privacy policy
+        4. licenses for the names + our code + Database
+  20. Delete account page
+       1. make the page
+        1. layout
+        2. API call to delete.
+        3. pop up warning message (Button? - Type delete? - other?)
+        4. Redirect to home page after deletion
+ 21. change password page
+      1. is the recovery page
