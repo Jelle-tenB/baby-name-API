@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/login.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <script src="../js/globals.js" type="text/javascript" defer></script>
+    <title>Document</title>
+    <link id="favicon" rel="icon" type="image/x-icon" href="../Images/templogo.svg">
+</head>
+
+<body>
+    <div id="app">
+        <div class="logowrap">
+            <a href="./welcome.html">
+                <img src="../Images/templogo.svg" height="200" width="200" class="logoimg" alt="logo">
+            </a>
+        </div>
+        <div id="loginwrapper" shadow>
+            <div id="loginHead">
+                <h1>Sign in</h1>
+            </div>
+            <div id="loginform">
+                <label for="loginUser">Username:</label>
+                <input type="text" id="loginUser" name="letter">
+                <label for="loginPass">Password:</label>
+                <input type="password" id="loginPass" name="letter">
+            </div>
+            <div id="recoveryform">
+                <label for="loginrecovery">Recovery key</label>
+                <input type="password" id="loginrecovery" name="letter">
+            </div>
+            <div id="loginbuttons">
+                <button id="loginbutton">Login</button>
+                <a href="./recovery.html"><button id="forgotbutton">Forgot password</button></a>
+                <a href="./register.html"><button>create account</button></a>
+            </div>        
+        </div>
+    </div>
+    
+    <script src="../js/login.js" type="module"></script>
+</body>
+
+</html>

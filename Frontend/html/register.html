@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link id="favicon" rel="icon" type="image/x-icon" href="../Images/templogo.svg">
+    <link rel="stylesheet" href="../css/register.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <script src="../js/globals.js" type="text/javascript" defer></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+        <div class="logowrap">
+            <a href="./welcome.html">
+                <img src="../Images/templogo.svg" height="200" width="200" class="logoimg" alt="logo">
+            </a>
+        </div>
+        <div id="wwWarning">
+            This is a small project and we cannot guarantee the security of your password. Make sure you do not use a password you already use elsewhere.
+        </div>
+        <div id="registerwrapper" shadow>
+            <h1 id="registerHead">Create Account</h1>
+            <div id="registerform">
+                <p>*All fields are required*</p>
+                <label for="registerUser">Username:</label>
+                <input type="text" id="registerUser" name="letter">
+                <label for="registerPass">Password:</label>
+                <input type="password" id="registerPass" name="letter">
+                <label for="registerPass2">confirm Password:</label>
+                <input type="password" id="registerPass2" name="letter">
+                <label for="accepteula">Accept our <a href="./policy.html">eula</a></label>
+                <input type="checkbox" id="accepteula" name="eula">
+                <button id="registerbutton" shadow>Register</button>       
+            </div>
+            <div id="tokendiv" hidden>
+                <p>This is your recovery token, be sure to save it! If you forget your password then this code is the only way to recover your account.</p>
+                <p id="tokenHere"></p>
+                <button id="confirmtoken" shadow>I have saved the token somewhere</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="../js/register.js" type="module"></script>
+</body>
+
+</html>

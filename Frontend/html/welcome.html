@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/welcome.css">
+    <link id="favicon" rel="icon" type="image/x-icon" href="../Images/templogo.svg">
+    <script src="../js/globals.js" type="text/javascript" defer></script>
+</head>
+
+<body>
+    <!-- <h1>Pick A Name</h1> -->
+    <img src="../Images/templogo.svg" height="200" width="200" class="logoimg" alt="logo">
+
+    <div class="wrapper" shadow>
+        <h2>Welcome to our app</h2>
+        <p>
+            We are participants of Roads Technology and this our project to help others pick a name for their child.
+            Our database contains 45331 names and choosing between them can be quite the chore.
+            So we made it possible to search / filter for names based on certain letters, gender and / or country.
+            After making an account you can also swipe right (like) or swipe left (dislike) to save your preferences and compare them with your partner.
+            You can only have 2 people in a group and you can be in a maximum of 2 groups.
+        </p>
+    </div>
+
+    <div class="buttonwrapper" shadow>
+        <button onclick="window.location.assign('./login.html')">Login</button>
+        <button onclick="window.location.assign('./register.html')">Create an account</button>
+        <button onclick="window.location.assign('./filter.html')">Search names</button>
+        <!-- <button onclick="window.location.assign('./information-page.html')">More Information</button> -->
+        <button onclick="window.location.assign('./credits.html')">Credits</button>
+    </div>
+
+    <script src="../js/welcome.js" type="module"></script>
+</body>
+
+</html>

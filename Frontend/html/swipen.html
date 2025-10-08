@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/swipen.css">
+    <link id="favicon" rel="icon" type="image/x-icon" href="../Images/templogo.svg">
+    <script src="../js//globals.js" type="text/javascript" defer></script>
+</head>
+
+<body>
+        <div id="app"> 
+            <div id="boardContainer">
+                <img id="dislikeimg" src ='../Images/close-line-icon.svg' alt="dislike">
+                <img id="likeimg" src="../Images/Heart.svg" alt="like">
+                <div id="namecounter"></div>
+                <div id="loadwarning"><p>Fetching names</p></div>
+                <div id="board">
+                    <div id="buttons">
+                        <button id="dislike">❌</button>
+                        <button id="refresh"><img src="../Images/refresh.svg" width="32px" height="32px" alt="refresh"></button>
+                        <button id="like">❤️</button>
+                    </div>
+                </div>
+            </div>
+            <div id="menuContainer">
+                <icon-menu page="swipen"></icon-menu>
+            </div>
+        </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src="../js/swipen.js" type="module"></script>
+</body>
+
+</html>

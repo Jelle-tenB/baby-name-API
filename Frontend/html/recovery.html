@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link id="favicon" rel="icon" type="image/x-icon" href="../Images/templogo.svg">
+    <link rel="stylesheet" href="../css/recovery.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <script src="../js/globals.js" type="text/javascript" defer></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+        <div class="logowrap">
+            <a href="./welcome.html">
+                <img src="../Images/templogo.svg" height="200" width="200" class="logoimg" alt="logo">
+            </a>
+        </div>
+        <div id="loginwrapper" shadow>
+            <div id="loginHead">
+                <h1>Recover account</h1>
+            </div>
+            <div id="loginform">
+                <label for="loginUser">Username:</label>
+                <input type="text" id="loginUser" name="letter">
+                <label for="loginrecovery">Recovery key</label>
+                <input type="password" id="loginrecovery" name="letter">
+                <label for="loginPass">New Password:</label>
+                <input type="password" id="loginPass" name="letter">
+                <label for="loginPass2">Confirm Password:</label>
+                <input type="password" id="loginPass2" name="letter">
+                <button id="loginbutton">Login</button>
+            </div>       
+        </div>
+    </div>
+    
+    <script src="../js/recovery.js" type="module"></script>
+</body>
+
+</html>
