@@ -1,0 +1,30 @@
+partner-component > *{
+    margin :5vh 0;
+    justify-self: center;
+}
+
+.wrapper{
+    display: grid;
+    grid-template-columns: repeat(2 , max-content);
+    gap: 10px;
+    align-items: center;
+    background-color: var(--colorMain);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.wrapper p{
+    grid-column: span 2;
+    margin : 0;
+    justify-self: center;
+}
+
+.grouptoken{
+    background-color: var(--colorF);
+    padding: 1vh 2vw;
+    border-radius: 5px;
+}
+
+#creategrouptokenbutton{
+    grid-column: span 2;
+}

@@ -1,0 +1,30 @@
+body {
+    background-color: aliceblue;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#names {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: lightblue;
+    border-radius: 1%;
+    height: 20em;
+    width: 20%;
+}
+
+#buttons {
+    margin-top: 5px;
+}
+
+#name {
+    font-size: 40px;
+    padding: 15px;
+    border-radius: 25px;
+    background-color: white;
+}

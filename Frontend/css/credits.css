@@ -1,0 +1,27 @@
+body {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    height: 100%;
+    overflow-x: hidden;
+    background: linear-gradient(45deg, var(--gradient1), var(--gradient2));
+    background-size: 200% 200%;
+    /* Ensures the gradient shifts */
+    animation: pulseGradient 5s infinite;
+    /* Duration and infinite loop */
+}
+
+button {
+    width: 250px;
+    margin: 2vh 0;
+    font-size: 22px;
+    padding: 10px;
+}
+
+p1 {
+    font-size: 28px;
+    font-weight: bold;
+    padding-top: 15px;
+    padding-bottom: 4px;
+}

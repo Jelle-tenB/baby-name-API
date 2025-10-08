@@ -1,0 +1,27 @@
+#loginwrapper {
+    background-color: var(--colorMain);
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    gap : 25px;
+    border-radius: 5px;
+}
+
+#loginHead h1{
+    margin: 0;
+    text-align: center;
+}
+
+#loginform{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#recoveryform{
+    display: none;
+}
+
+#loginbutton{
+    margin-block-start: 15px;
+}

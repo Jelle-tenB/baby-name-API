@@ -1,0 +1,70 @@
+#registerwrapper{
+    background-color: var(--colorMain);
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    gap : 25px;
+    border-radius: 5px;
+}
+
+#wwWarning{
+    background-color: red;
+    border-radius: 5px;
+    padding: 5px;
+    margin : 10px;
+    color: #fff;
+}
+
+#registerHead{
+    text-align: center;
+    margin: 0;
+}
+
+#registerform{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    text-align: right;
+    row-gap: 10px;
+}
+
+#registerform input{
+    justify-self: start;
+}
+
+#registerform p{
+    text-align: center;
+    grid-column-start: span 2;
+    margin: 0;
+}
+
+#registerbutton{
+    grid-column-start: span 2;
+}
+
+#registerform[hidden], #tokendiv[hidden]{
+    display: none;
+}
+
+#tokendiv{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: red;
+    color: white;
+    margin: 10px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#tokenHere {
+    border: 1px solid white;
+    padding: 1em 2em;
+    border-radius: 5px;
+    font-size: 40px;
+}
+
+button{
+    background-color: var(--colorMain);
+    border-radius: 5px;
+    border : 1px solid black;
+}

@@ -1,0 +1,53 @@
+body {
+    text-align: center;
+    height: 100%;
+    overflow-y: hidden;
+    background: linear-gradient(45deg, var(--gradient1), var(--gradient2));
+    background-size: 200% 200%;
+    /* Ensures the gradient shifts */
+    animation: pulseGradient 5s infinite;
+    /* Duration and infinite loop */
+}
+
+.wrapper{
+    display: flex;
+    flex-direction: column;
+    background-color: var(--colorMain);
+    gap: 5px;
+    padding: 25px;
+    width: 80%;
+    align-items: center;
+    justify-self: center;
+    margin-bottom: 20px;
+}
+
+.buttonwrapper{
+    display: grid;
+    width: 80%;
+    grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+    justify-self: center;
+    background-color: var(--colorMain);
+    padding: 25px;
+    border-radius: 5px;
+    gap: 25px;
+    margin-bottom: 20px;
+}
+
+@keyframes pulseGradient {
+    0% {
+        background-position: 0% 0%;
+    }
+
+    50% {
+        background-position: 50% 50%;
+    }
+
+    100% {
+        background-position: 0% 0%;
+    }
+}
+
+h2 {
+    font-size: 38px;
+    margin-bottom: 0;
+}

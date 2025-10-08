@@ -1,0 +1,140 @@
+filter-component{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    font-size: var(--bigLetter);
+}
+
+#filtertitle{
+    font-size: 55px;
+    text-align: center;
+    padding: 0;
+}
+
+#genderfilter{
+    display: flex;
+    flex-direction: column;
+    margin-block-end: 1em;
+}
+
+.filterhead{
+    background-color: var(--colorMain);
+    font-weight: var(--boldLetter);
+    margin-block-end: 10px;
+    text-align: center;
+}
+
+/* gender filter */
+
+.gendercard{
+    text-align: center;
+    border-radius: 15px;
+    margin-block : 5px;
+    padding-block: 0.33em;
+    margin-block: 0.25em;
+    width: 50%;
+    background-color: var(--colorM);
+    align-self: center;
+}
+
+
+.gendercard[value='?']{
+    background-color: var(--colorO);
+}
+.gendercard[value='M']{
+    background-color: var(--colorM);
+}
+.gendercard[value='F']{
+    background-color: var(--colorF);
+}
+#allcard{
+    background: linear-gradient(45deg,var(--colorF) 0%, var(--colorO) 50%, var(--colorM) 100%);
+}
+
+/* letter filter */
+
+#letterwrapper{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#lettertogglewrapper{
+    display: flex;
+    margin-bottom: 1em;
+    justify-content: space-around;
+}
+
+#letterStartButton,#letterenywhereButton{
+    background-color: var(--colorMain);
+    border-radius: 5px;
+    padding-inline: 10px;
+}
+
+.letterdiv{
+    background-color: var(--colorMain);
+    width: 1.25em;
+    margin: 10px;
+    text-align: center;
+}
+
+#letterfilter [selected]{
+    background-color: var(--colorHilight);
+}
+
+
+/* country filter */
+#flagwrapper{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 115px);
+    gap : 10px;
+    justify-content: space-evenly;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.flagdiv{
+    padding: 1em;
+    background-color: var(--colorMain);
+}
+
+.flagdiv[selected]{
+    background-color: var(--colorHilight);
+}
+
+.flagdiv img{
+    width: 80px;
+    height: 55px;
+}
+
+.flagdiv p{
+    margin: 5px 0 0 0;
+}
+
+#gotoswipebutton{
+    margin-block-end: 1em;
+    align-self: center;
+    border-radius: 5px;
+    background-color: var(--colorHilight);
+    border: 0;
+}
+
+/* combined rules */
+
+#letterfilter,#genderfilter,#countryfilter{
+    margin-bottom: 1em;
+}
+
+.letterdiv,.flagdiv{
+    border-radius: 5px;
+}
+
+.flagdiv, .letterdiv, .gendercard,#letterStartButton,#letterenywhereButton{
+     box-shadow: rgba(0, 0, 0, 0.35) 2.5px 5px 0px;
+}
+
+/* give a inset shadow to all selected and active items */
+.gendercard:active,[selected],.flagdiv:active,.letterdiv:active,#letterStartButton:active,#letterenywhereButton:active,#letterStartButton[selected],#letterenywhereButton[selected] {
+    box-shadow: inset 5px 5px 2px 2px rgba(0, 0, 0, 0.35);
+}
