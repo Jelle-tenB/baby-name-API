@@ -6,6 +6,7 @@ And given group_code.
 
 # Standard Library Imports
 from json import loads
+from os import getenv
 
 # Third-Party Libraries
 from fastapi import HTTPException, APIRouter, Depends, Cookie, Request, Query
@@ -13,10 +14,11 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection, Error
 
 # Local Application Imports
-from imports import get_db, SuccessResponse, ErrorResponse, limiter, validate_token
+from imports import get_db, SuccessResponse, ErrorResponse, limiter, validate_token, load_project_dotenv
 
 
 compare_likes_router = APIRouter()
+load_project_dotenv()
 
 @compare_likes_router.get("/compare_likes",
     response_model=SuccessResponse,
@@ -48,43 +50,7 @@ async def compare_likes(
     await validate_token(token, user_id, db)
 
     # Query to find the names your partner has liked, but you haven't seen yet.
-    query = """
-        WITH user_group AS (
-            SELECT g.group_id
-            FROM groups g
-            JOIN link_users lu ON g.group_id = lu.group_id
-            WHERE lu.user_id = ?
-            AND g.group_code = ?
-        ),
-        partner_ids AS (
-            SELECT user_id
-            FROM link_users
-            WHERE group_id = (SELECT group_id FROM user_group)
-            AND user_id != ?
-        ),
-        partner_liked_names AS (
-            SELECT DISTINCT ul.name_id
-            FROM user_liked ul
-            JOIN partner_ids p ON ul.user_id = p.user_id
-        ),
-        user_own_names AS (
-            SELECT name_id FROM user_liked WHERE user_id = ?
-            UNION
-            SELECT name_id FROM user_disliked WHERE user_id = ?
-        )
-        SELECT 
-            n.id,
-            n.name,
-            n.gender,
-            GROUP_CONCAT(DISTINCT c.country) AS countries,
-            GROUP_CONCAT(DISTINCT p.pop) AS populations
-        FROM names n
-        JOIN partner_liked_names pl ON n.id = pl.name_id
-        LEFT JOIN population p ON n.id = p.name_id
-        LEFT JOIN countries c ON p.country_id = c.id
-        WHERE n.id NOT IN (SELECT name_id FROM user_own_names)
-        GROUP BY n.id, n.name, n.gender;
-    """
+    query = getenv("MATCHED_NAMES_QUERY")
 
     # Check if the group code is valid.
     async with db.execute("SELECT 1 FROM groups WHERE group_code = ?;", (group_code,)) as cursor:
@@ -97,7 +63,7 @@ async def compare_likes(
     except Error as e:
         raise HTTPException(status_code=400, detail=f"error: database error {e}") from e
 
-    # Formats the search results into a list of dictonaries / JSON.
+    # Formats the search results into a list of dictionaries / JSON.
     grouped_data = {}
 
     for row in rows:

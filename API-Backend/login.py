@@ -15,6 +15,7 @@ With a maximum of 5 attempts, user will be locked out after the fifth failed att
 from typing import Annotated
 from json import dumps
 from datetime import timedelta, datetime
+from os import getenv
 
 # Third-Party Libraries
 from fastapi import HTTPException, APIRouter, Depends, Request
@@ -23,10 +24,13 @@ from pydantic import BaseModel, Field as field
 from aiosqlite import Connection, Error
 
 # Local Application Imports
-from imports import get_db, pwd_context, save_session_token, limiter
+from imports import get_db, save_session_token, limiter, load_project_dotenv
+from password import pwd_context
 
 
 login_router = APIRouter()
+
+load_project_dotenv()
 
 MAX_ATTEMPTS = 5  # Maximum allowed login attempts
 LOCKOUT_DURATION = timedelta(minutes=10)  # Lockout duration after max attempts
@@ -78,25 +82,9 @@ async def login(
     With a maximum of 5 attempts, user will be locked out after the fifth failed attempt.
     """
 
-    # Query to find the user's data.
-    query = """
-    SELECT username, password, user_id FROM users WHERE username = ?;
-    """
+    query = getenv("LOGIN_QUERY")
 
-    groupcode_query = """
-    SELECT CAST(g.group_code AS TEXT),
-        u.username
-    FROM link_users AS lu_self
-    JOIN groups AS g 
-    ON g.group_id = lu_self.group_id
-    LEFT JOIN link_users AS lu_other 
-    ON lu_other.group_id = lu_self.group_id
-    AND lu_other.user_id <> lu_self.user_id
-    LEFT JOIN users AS u 
-    ON u.user_id = lu_other.user_id
-    WHERE lu_self.user_id = ?
-    ORDER BY g.group_code, u.username;
-    """
+    groupcode_query = getenv("GROUPCODE_QUERY")
 
     username = item.username.lower()
 
@@ -117,27 +105,18 @@ async def login(
             # if the user does not exist, increment the failed login attempts
             last_attempt = datetime.now().replace(microsecond=0)
             # Try to update first
-            result = await db.execute("""
-                UPDATE failed_logins
-                SET attempts = attempts + 1,
-                    last_attempt = ?
-                WHERE ip = ?""",
+            result = await db.execute(getenv("UPDATE_FAILED_LOGINS"),
                 (last_attempt, ip_address))
             await db.commit()
 
             if result.rowcount == 0:
                 # No existing record was updated → insert new
-                await db.execute("""
-                    INSERT INTO failed_logins (ip, attempts, last_attempt)
-                    VALUES (?, ?, ?)""",
+                await db.execute(getenv("FIRST_FAILED_LOGIN"),
                     (ip_address, 1, last_attempt))
                 await db.commit()
 
-            async with db.execute("""
-            SELECT attempts, last_attempt FROM failed_logins
-            WHERE ip = ?
-            ORDER BY last_attempt DESC LIMIT 1
-            """, (ip_address,)) as cursor:
+            async with db.execute(getenv("CHECK_FAILED_LOGINS"),
+                (ip_address,)) as cursor:
                 attempts_row = await cursor.fetchone()
 
             if attempts_row:
@@ -159,11 +138,8 @@ async def login(
         hashed_pwd = row[1]
         user_id = row[2]
 
-        async with db.execute("""
-            SELECT attempts, last_attempt FROM failed_logins
-            WHERE ip = ?
-            ORDER BY last_attempt DESC LIMIT 1
-        """, (ip_address,)) as cursor:
+        async with db.execute(getenv("CHECK_FAILED_LOGINS"),
+            (ip_address,)) as cursor:
             attempts_row = await cursor.fetchone()
 
         if attempts_row:
@@ -184,19 +160,13 @@ async def login(
         if not pwd_context.verify(item.password, hashed_pwd):
             last_attempt = datetime.now().replace(microsecond=0)
             # Try to update first
-            result = await db.execute("""
-                UPDATE failed_logins
-                SET attempts = attempts + 1,
-                    last_attempt = ?
-                WHERE ip = ?""",
+            result = await db.execute(getenv("UPDATE_FAILED_LOGINS"),
                 (last_attempt, ip_address))
             await db.commit()
 
             if result.rowcount == 0:
                 # No existing record was updated → insert new
-                await db.execute("""
-                    INSERT INTO failed_logins (ip, attempts, last_attempt)
-                    VALUES (?, ?, ?)""",
+                await db.execute(getenv("FIRST_FAILED_LOGIN"),
                     (ip_address, 1, last_attempt))
                 await db.commit()
 
@@ -221,7 +191,6 @@ async def login(
 
         if not origin:
             origin = request.headers["host"]
-            print(origin, "test1")
 
         if origin in ["https://babynamegenerator.roads-technology.nl",
                     "https://apibabynamegenerator.roads-technology.nl",

@@ -6,6 +6,7 @@ The user must be logged in (have a valid cookie) to delete a group.
 
 # Standard Library
 from json import loads, dumps
+from os import getenv
 
 # Third-Party Libraries
 from fastapi import HTTPException, Depends, Cookie, APIRouter, Query, Request
@@ -13,10 +14,11 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection, Error
 
 # Local Application Imports
-from imports import get_db, limiter, validate_token
+from imports import get_db, limiter, validate_token, load_project_dotenv
 
 
 delete_group_router = APIRouter()
+load_project_dotenv()
 
 
 @delete_group_router.delete("/delete_group",
@@ -57,12 +59,7 @@ async def delete_group(
 
     try:
         # Query to check if user is indeed in the given group.
-        code_query = """
-        SELECT user_id
-        FROM link_users
-        JOIN groups ON link_users.group_id = groups.group_id
-        WHERE group_code = ?;
-        """
+        code_query = getenv("CHECK_IF_IN_GROUP")
 
         async with db.execute(code_query, (group_code,)) as cursor:
             rows = [row[0] for row in await cursor.fetchall()]
@@ -80,46 +77,22 @@ async def delete_group(
         raise HTTPException(status_code=400, detail="error: database error") from e
 
     # check if the group has 1 or 2 users
-    count_query = """
-        SELECT COUNT(*)
-        FROM link_users
-        WHERE group_id = (
-            SELECT group_id
-            FROM groups
-            WHERE group_code = ?
-        );
-    """
+    count_query = getenv("COUNT_USERS_IN_GROUP")
 
     # delete dependent rows first
-    delete_link_query = """
-        DELETE FROM link_users
-        WHERE group_id IN (
-            SELECT group_id
-            FROM groups
-            WHERE group_code = ?
-        );
-    """
+    delete_link_query = getenv("DELETE_LINK_GROUPS")
 
     # then delete parent rows
-    delete_group_query = """
-        DELETE FROM groups
-        WHERE group_code = ?;
-    """
+    delete_group_query = getenv("DELETE_GROUP")
 
     # delete only the link to the user, if there are 2 users in the group.
-    only_link_query = """
-        DELETE FROM link_users
-        WHERE group_id = (
-            SELECT group_id
-            FROM groups
-            WHERE group_code = ?
-        )
-        AND user_id = ?;
-    """
+    only_link_query = getenv("DELETE_2LINKS_GROUPS")
 
     try:
         async with db.execute(count_query, (group_code,)) as cursor:
             row = await cursor.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail=f"error: group {group_code} not found")
     except Error as e:
         raise HTTPException(status_code=500, detail="error: database error") from e
 

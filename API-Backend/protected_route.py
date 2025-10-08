@@ -4,9 +4,12 @@ Requires a valid session token to be passed in the cookie.
 The session token is validated and a new session token is generated and returned in the cookie.
 """
 
+# TODO: MAYBE checks login attempts with cookie too.
+
 # Standard library imports
 from json import dumps, loads
 from datetime import timedelta
+from os import getenv
 
 # Third-party library imports
 from fastapi import HTTPException, Depends, Cookie, APIRouter, Request
@@ -14,10 +17,11 @@ from fastapi.responses import JSONResponse
 from aiosqlite import Connection
 
 # Local application imports
-from imports import get_db, save_session_token, limiter, validate_token
+from imports import get_db, save_session_token, limiter, validate_token, load_project_dotenv
 
 
 cookie_router = APIRouter()
+load_project_dotenv()
 
 
 @cookie_router.get("/cookie",
@@ -37,14 +41,14 @@ cookie_router = APIRouter()
                     "example":
                         {"error: login failed"}
 }}}})
-@limiter.limit("10/minute")
+@limiter.limit("20/minute")
 async def protected_route(
     request: Request, # pylint: disable=unused-argument
     session_token: str = Cookie(None),
     db: Connection = Depends(get_db)
 ):
 
-    """GET request to login with an authorisation token in the cookie."""
+    """GET request to login with an authorization token in the cookie."""
 
     if not session_token:
         raise HTTPException(status_code=401, detail="error: not logged in")
@@ -62,20 +66,7 @@ async def protected_route(
     maxage = int(timedelta(hours=12).total_seconds())
 
     # Query to find a user's group code
-    groupcode_query = """
-        SELECT CAST(g.group_code AS TEXT),
-            u.username
-        FROM link_users AS lu_self
-        JOIN groups AS g 
-        ON g.group_id = lu_self.group_id
-        LEFT JOIN link_users AS lu_other 
-        ON lu_other.group_id = lu_self.group_id
-        AND lu_other.user_id <> lu_self.user_id
-        LEFT JOIN users AS u 
-        ON u.user_id = lu_other.user_id
-        WHERE lu_self.user_id = ?
-        ORDER BY g.group_code, u.username;
-        """
+    groupcode_query = getenv("GROUPCODE_QUERY")
 
     async with db.execute(groupcode_query, (user_id,)) as cursor:
         rows = await cursor.fetchall()

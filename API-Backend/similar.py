@@ -4,16 +4,18 @@ Returns a list of similar names based on the given name_id.
 
 # Standard Library
 from json import loads
+from os import getenv
 
 # Third-Party Libraries
 from fastapi import HTTPException, APIRouter, Depends, Query, Request, Cookie
 from aiosqlite import Connection, Error
 
 # Local Application Imports
-from imports import get_db, SuccessResponse, ErrorResponse, limiter
+from imports import get_db, SuccessResponse, ErrorResponse, limiter, load_project_dotenv
 
 
 similar_router = APIRouter()
+load_project_dotenv()
 
 @similar_router.get("/similar",
     response_model=SuccessResponse,
@@ -45,58 +47,14 @@ async def similar(
             # Query to find similar names of the given name id.
             # Returns all similar names excluding the given name.
             if not session_token:
-                query = """
-                    WITH group_members AS (
-                    SELECT DISTINCT s.name_id
-                    FROM similar s
-                    WHERE s.group_id = (SELECT s2.group_id
-                                        FROM similar s2
-                                        WHERE s2.name_id = ?)
-                        AND s.name_id != ?
-                    )
-                    SELECT 
-                    n.id,
-                    n.name,
-                    n.gender,
-                    GROUP_CONCAT(c.country, ', ') AS countries,
-                    GROUP_CONCAT(p.pop, ', ') AS populations
-                    FROM names n
-                    JOIN population p ON n.id = p.name_id
-                    JOIN countries c ON p.country_id = c.id
-                    WHERE n.id IN (SELECT name_id FROM group_members)
-                    GROUP BY n.id, n.name, n.gender;
-                """
+                query = getenv("FIND_SIMILAR_NAMES")
 
                 async with db.execute(query, (name_id, name_id,)) as cursor:
                     rows = await cursor.fetchall()
 
             # If the user is logged in, exclude names that the user has liked or disliked.
             else:
-                query = """
-                    WITH group_members AS (
-                        SELECT DISTINCT s.name_id
-                        FROM similar s
-                        WHERE s.group_id = (
-                            SELECT s2.group_id
-                            FROM similar s2
-                            WHERE s2.name_id = ?
-                        )
-                        AND s.name_id != ?
-                    )
-                    SELECT 
-                        n.id,
-                        n.name,
-                        n.gender,
-                        GROUP_CONCAT(c.country, ', ') AS countries,
-                        GROUP_CONCAT(p.pop, ', ') AS populations
-                    FROM names n
-                    JOIN population p ON n.id = p.name_id
-                    JOIN countries c ON p.country_id = c.id
-                    WHERE n.id IN (SELECT name_id FROM group_members)
-                    AND n.id NOT IN (SELECT name_id FROM user_liked WHERE user_id = ?)
-                    AND n.id NOT IN (SELECT name_id FROM user_disliked WHERE user_id = ?)
-                    GROUP BY n.id, n.name, n.gender;
-                """
+                query = getenv("LOGIN_FIND_SIMILAR_NAMES")
 
                 # Reads the cookie.
                 data = loads(session_token)
@@ -106,7 +64,7 @@ async def similar(
                     rows = await cursor.fetchall()
 
 
-            # Formats the search result into a List of Dictonaries / JSON
+            # Formats the search result into a List of Dictionaries / JSON
             grouped_data = {}
 
             for row in rows:
